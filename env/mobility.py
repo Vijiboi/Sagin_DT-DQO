@@ -20,6 +20,7 @@ def bounce_update(
     agent: UAVAgent,
     width: float,
     height: float,
+    min_altitude: float,
     max_altitude: float,
 ) -> None:
     agent.x += agent.vx
@@ -32,9 +33,9 @@ def bounce_update(
     if agent.y < 0 or agent.y > height:
         agent.vy *= -1
         agent.y = min(max(agent.y, 0.0), height)
-    if agent.z < 5 or agent.z > max_altitude:
+    if agent.z < min_altitude or agent.z > max_altitude:
         agent.vz *= -1
-        agent.z = min(max(agent.z, 5.0), max_altitude)
+        agent.z = min(max(agent.z, min_altitude), max_altitude)
 
 
 def ap_distance(agent: UAVAgent, ap: APNode) -> float:

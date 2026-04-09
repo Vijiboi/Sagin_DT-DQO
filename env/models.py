@@ -52,7 +52,8 @@ class APNode:
     coord_threshold: float
     twin_state: TwinState = field(default_factory=TwinState)
     coordination_state: CoordinationState = field(default_factory=CoordinationState)
-    current_load: int = 0
+    current_task_load: int = 0
+    current_cpu_load: float = 0.0
 
 
 @dataclass(slots=True)
@@ -117,10 +118,12 @@ class CandidateScore:
 class QuboProblem:
     ap_id: str
     slot: int
+    local_load: float
     variables: list[tuple[str, str]]
     linear: dict[tuple[str, str], float]
     quadratic: dict[tuple[tuple[str, str], tuple[str, str]], float]
     penalty_mu: float
+    penalty_by_task: dict[str, float]
     candidate_scores: list[CandidateScore]
 
 
@@ -138,6 +141,7 @@ class LocalSummary:
     ap_id: str
     slot: int
     queue_size: int
+    local_load: float
     sync_triggered: bool
     coordination_triggered: bool
     trust: float

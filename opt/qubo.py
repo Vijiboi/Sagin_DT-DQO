@@ -18,22 +18,25 @@ class LocalQuboBuilder:
         ap_lookup: dict[str, APNode],
         slot: int,
     ) -> QuboProblem:
+        local_load = self._local_load(ap, tasks)
         variables: list[tuple[str, str]] = []
         linear: dict[tuple[str, str], float] = {}
         quadratic: dict[tuple[tuple[str, str], tuple[str, str]], float] = {}
+        penalty_by_task: dict[str, float] = {}
         candidate_scores: list[CandidateScore] = []
 
         by_task: dict[str, list[tuple[str, str]]] = {}
         by_destination: dict[str, list[tuple[str, str]]] = {}
 
         for task in tasks:
+            penalty_by_task[task.task_id] = self.config.qubo_penalty
             task_variables: list[tuple[str, str]] = []
             for destination_id in task.A_u_t:
                 destination = ap_lookup[destination_id]
                 score = self._score_assignment(task, destination, ap_lookup)
                 variable = (task.task_id, destination_id)
                 variables.append(variable)
-                linear[variable] = score.local_cost + score.coupling_penalty - self.config.qubo_penalty
+                linear[variable] = score.local_cost + score.coupling_penalty - penalty_by_task[task.task_id]
                 candidate_scores.append(score)
                 task_variables.append(variable)
                 by_destination.setdefault(destination_id, []).append(variable)
@@ -60,10 +63,12 @@ class LocalQuboBuilder:
         return QuboProblem(
             ap_id=ap.ap_id,
             slot=slot,
+            local_load=local_load,
             variables=variables,
             linear=linear,
             quadratic=quadratic,
             penalty_mu=self.config.qubo_penalty,
+            penalty_by_task=penalty_by_task,
             candidate_scores=candidate_scores,
         )
 
@@ -86,7 +91,7 @@ class LocalQuboBuilder:
             0.04 * task.L_u + 0.012 * air_distance + 0.02 * task.D_u / max(destination.cpu_capacity, 1.0)
         )
 
-        projected_load = (destination.current_load + task.D_u / 4.0) / max(destination.cpu_capacity, 1.0)
+        projected_load = (destination.current_cpu_load + task.cpu_demand) / max(destination.cpu_capacity, 1.0)
         bandwidth_ratio = task.bandwidth_demand / max(destination.communication_budget, 1.0)
         power_ratio = task.power_demand / max(destination.power_budget, 1.0)
         mission_cost = self.config.mission_weight * (
@@ -122,3 +127,8 @@ class LocalQuboBuilder:
             if task.task_id == task_id:
                 return task
         raise KeyError(f"Missing task {task_id}")
+
+    @staticmethod
+    def _local_load(ap: APNode, tasks: list[Task]) -> float:
+        queued_cpu = sum(task.cpu_demand for task in tasks)
+        return (ap.current_cpu_load + queued_cpu) / max(ap.cpu_capacity, 1.0)

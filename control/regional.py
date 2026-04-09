@@ -31,24 +31,32 @@ class RegionalController:
             ap_id: {"cpu": 0.0, "bandwidth": 0.0, "power": 0.0}
             for ap_id in ap_lookup
         }
-        for task_id, task_scores in all_scores_by_task.items():
-            proposals = proposed_by_task.get(task_id) or []
-            ranked = sorted(
-                proposals if proposals else task_scores,
-                key=lambda score: score.local_cost + score.coupling_penalty + 0.1 * score.projected_load,
-            )
-            if proposals:
-                fallback = sorted(
-                    task_scores,
-                    key=lambda score: score.local_cost + score.coupling_penalty + 0.1 * score.projected_load,
+        remaining_tasks = set(all_scores_by_task)
+        while remaining_tasks:
+            ranked_tasks = []
+            for task_id in remaining_tasks:
+                ranked_scores = self._rank_scores(
+                    proposed_by_task.get(task_id, []),
+                    all_scores_by_task[task_id],
                 )
-                for score in fallback:
-                    if score not in ranked:
-                        ranked.append(score)
+                feasible_scores = [
+                    score for score in ranked_scores if self._is_feasible(score, ap_lookup, resource_usage)
+                ]
+                best_score = feasible_scores[0] if feasible_scores else ranked_scores[0]
+                demand = best_score.required_cpu + best_score.required_bandwidth + best_score.required_power
+                ranked_tasks.append(
+                    (
+                        len(feasible_scores),
+                        -demand,
+                        best_score.local_cost + best_score.coupling_penalty,
+                        task_id,
+                        feasible_scores,
+                        ranked_scores,
+                    )
+                )
 
-            winner = self._first_feasible(ranked, ap_lookup, resource_usage)
-            if winner is None:
-                winner = min(task_scores, key=lambda score: score.local_cost + score.coupling_penalty)
+            _, _, _, task_id, feasible_scores, ranked_scores = min(ranked_tasks)
+            winner = feasible_scores[0] if feasible_scores else ranked_scores[0]
 
             usage = resource_usage[winner.destination_id]
             usage["cpu"] += winner.required_cpu
@@ -66,6 +74,7 @@ class RegionalController:
                     fidelity_cost=winner.fidelity_cost,
                 )
             )
+            remaining_tasks.remove(task_id)
 
         if not final_assignments and all_scores:
             return greedy_one_hot_assignment(all_scores)
@@ -77,13 +86,26 @@ class RegionalController:
         return len(task_ids) == len(set(task_ids))
 
     @staticmethod
-    def _first_feasible(ranked_scores, ap_lookup, resource_usage):
-        for score in ranked_scores:
-            ap = ap_lookup[score.destination_id]
-            usage = resource_usage[score.destination_id]
-            cpu_ok = usage["cpu"] + score.required_cpu <= ap.cpu_capacity
-            bandwidth_ok = usage["bandwidth"] + score.required_bandwidth <= ap.communication_budget
-            power_ok = usage["power"] + score.required_power <= ap.power_budget
-            if cpu_ok and bandwidth_ok and power_ok:
-                return score
-        return None
+    def _rank_scores(proposals, task_scores):
+        ranked = sorted(
+            proposals if proposals else task_scores,
+            key=lambda score: score.local_cost + score.coupling_penalty + 0.1 * score.projected_load,
+        )
+        if proposals:
+            fallback = sorted(
+                task_scores,
+                key=lambda score: score.local_cost + score.coupling_penalty + 0.1 * score.projected_load,
+            )
+            for score in fallback:
+                if score not in ranked:
+                    ranked.append(score)
+        return ranked
+
+    @staticmethod
+    def _is_feasible(score, ap_lookup, resource_usage):
+        ap = ap_lookup[score.destination_id]
+        usage = resource_usage[score.destination_id]
+        cpu_ok = usage["cpu"] + score.required_cpu <= ap.cpu_capacity
+        bandwidth_ok = usage["bandwidth"] + score.required_bandwidth <= ap.communication_budget
+        power_ok = usage["power"] + score.required_power <= ap.power_budget
+        return cpu_ok and bandwidth_ok and power_ok

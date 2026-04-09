@@ -22,6 +22,9 @@ class QuantizedConsensusCoordinator:
             summary = summary_by_ap.get(ap_id)
             if summary is None:
                 continue
+            if not summary.coordination_triggered:
+                ap.coordination_state.consensus_drift = 0.0
+                continue
 
             neighbor_ids = graph.adjacency.get(ap_id, [])
             neighbor_duals = [ap_lookup[neighbor].coordination_state.quantized_dual for neighbor in neighbor_ids]

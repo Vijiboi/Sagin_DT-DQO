@@ -18,6 +18,11 @@ def write_run_outputs(output_root: str, slot_results: list[SlotResult], summary:
     _write_slot_metrics(run_dir / "slot_metrics.csv", slot_results)
     _write_assignments(run_dir / "assignments.csv", slot_results)
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    if "simulation_parameters" in summary:
+        (run_dir / "simulation_parameters.json").write_text(
+            json.dumps(summary["simulation_parameters"], indent=2),
+            encoding="utf-8",
+        )
     return run_dir
 
 

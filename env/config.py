@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass(slots=True)
@@ -36,6 +36,17 @@ class SimulationConfig:
     fidelity_weight: float = 0.9
     output_dir: str = "results"
     randomize_task_weights: bool = True
+    ap_trust_init_min: float = 0.70
+    ap_trust_init_max: float = 0.95
+    ap_initial_predicted_bandwidth: float = 0.75
+    uav_altitude_min: float = 8.0
+    uav_altitude_max: float = 20.0
+    uav_max_altitude: float = 25.0
+    uav_velocity_xy_min: float = -3.0
+    uav_velocity_xy_max: float = 3.0
+    uav_velocity_z_min: float = -0.8
+    uav_velocity_z_max: float = 0.8
+    observation_ratio_clip: float | None = 1.5
     cpu_capacity_by_tier: dict[str, float] = field(
         default_factory=lambda: {"BS": 18.0, "HAP": 30.0, "LEO": 40.0}
     )
@@ -51,3 +62,98 @@ class SimulationConfig:
     altitude_by_tier: dict[str, float] = field(
         default_factory=lambda: {"BS": 0.0, "HAP": 20.0, "LEO": 60.0}
     )
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+    def to_report_dict(self) -> dict[str, object]:
+        return {
+            "seed": self.seed,
+            "simulation_horizon_slots": self.slots,
+            "network_topology": {
+                "num_bs": self.num_bs,
+                "num_haps": self.num_haps,
+                "num_leos": self.num_leos,
+                "num_uavs": self.num_uavs,
+                "candidate_ap_limit": self.candidate_ap_limit,
+                "area_width": self.area_width,
+                "area_height": self.area_height,
+                "altitude_by_tier": self.altitude_by_tier,
+            },
+            "task_generation": {
+                "task_arrival_probability": self.task_arrival_probability,
+                "randomize_task_weights": self.randomize_task_weights,
+                "uav_altitude_min": self.uav_altitude_min,
+                "uav_altitude_max": self.uav_altitude_max,
+                "uav_max_altitude": self.uav_max_altitude,
+                "uav_velocity_xy_min": self.uav_velocity_xy_min,
+                "uav_velocity_xy_max": self.uav_velocity_xy_max,
+                "uav_velocity_z_min": self.uav_velocity_z_min,
+                "uav_velocity_z_max": self.uav_velocity_z_max,
+            },
+            "tier_resources": {
+                "bandwidth_by_tier": self.bandwidth_by_tier,
+                "communication_budget_by_tier": self.communication_budget_by_tier,
+                "cpu_capacity_by_tier": self.cpu_capacity_by_tier,
+                "power_budget_by_tier": self.power_budget_by_tier,
+            },
+            "twin_and_trust": {
+                "sync_age_threshold": self.sync_age_threshold,
+                "sync_mismatch_threshold": self.sync_mismatch_threshold,
+                "sync_uncertainty_threshold": self.sync_uncertainty_threshold,
+                "coordination_load_threshold": self.coordination_load_threshold,
+                "coordination_overlap_threshold": self.coordination_overlap_threshold,
+                "coordination_trust_threshold": self.coordination_trust_threshold,
+                "twin_smoothing": self.twin_smoothing,
+                "twin_gaussian_std": self.twin_gaussian_std,
+                "ap_trust_init_min": self.ap_trust_init_min,
+                "ap_trust_init_max": self.ap_trust_init_max,
+                "ap_initial_predicted_bandwidth": self.ap_initial_predicted_bandwidth,
+                "observation_ratio_clip": self.observation_ratio_clip,
+            },
+            "qubo_and_solver": {
+                "qubo_penalty": self.qubo_penalty,
+                "qubo_load_coupling": self.qubo_load_coupling,
+                "anneal_reads": self.anneal_reads,
+                "anneal_sweeps": self.anneal_sweeps,
+            },
+            "regional_coordination": {
+                "consensus_step_size": self.consensus_step_size,
+                "consensus_quantum": self.consensus_quantum,
+                "consensus_epsilon": self.consensus_epsilon,
+            },
+            "objective_weights": {
+                "delay_weight": self.delay_weight,
+                "energy_weight": self.energy_weight,
+                "mission_weight": self.mission_weight,
+                "fidelity_weight": self.fidelity_weight,
+            },
+        }
+
+    def to_paper_parameter_view(self) -> dict[str, object]:
+        return {
+            "BS Bandwidth": self.bandwidth_by_tier["BS"],
+            "HAP Bandwidth": self.bandwidth_by_tier["HAP"],
+            "LEO Bandwidth": self.bandwidth_by_tier["LEO"],
+            "BS CPU Capacity": self.cpu_capacity_by_tier["BS"],
+            "HAP CPU Capacity": self.cpu_capacity_by_tier["HAP"],
+            "LEO CPU Capacity": self.cpu_capacity_by_tier["LEO"],
+            "Number of BSs": self.num_bs,
+            "Number of HAPs": self.num_haps,
+            "Number of LEO Satellites": self.num_leos,
+            "Number of UAV Tasks": self.num_uavs,
+            "AP Initial Trust Range": [self.ap_trust_init_min, self.ap_trust_init_max],
+            "UAV Altitude Range": [self.uav_altitude_min, self.uav_altitude_max],
+            "UAV Mobility Max Altitude": self.uav_max_altitude,
+            "Observation Ratio Clip": self.observation_ratio_clip,
+            "Twin-Age Sync Threshold": self.sync_age_threshold,
+            "Sync Uncertainty Threshold": self.sync_uncertainty_threshold,
+            "Sync Mismatch Threshold": self.sync_mismatch_threshold,
+            "Trust Trigger Threshold": self.coordination_trust_threshold,
+            "Application-Pressure Threshold": self.coordination_load_threshold,
+            "Distributed Backend Calls per Slot": 1,
+            "Centralized Reference Solver": "Classical QUBO solver",
+            "Classical Annealing Reads per AP": self.anneal_reads,
+            "Classical Annealing Sweeps per AP": self.anneal_sweeps,
+            "Simulation Horizon": self.slots,
+        }

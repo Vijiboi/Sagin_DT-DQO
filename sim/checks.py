@@ -8,6 +8,7 @@ def validate_pre_quantum_checks(slot_results: list[SlotResult]) -> dict[str, boo
     one_hot = all(slot.one_hot_valid for slot in slot_results)
     twin_updates = all(summary.fidelity > 0.0 and summary.uncertainty >= 0.0 for summary in all_summaries)
     trigger_activity = any(summary.sync_triggered or summary.coordination_triggered for summary in all_summaries)
+    local_load_tracking = all(summary.local_load >= 0.0 for summary in all_summaries)
     qubo_dimensions = all(
         (summary.queue_size == 0 and summary.qubo_dimension == 0)
         or (summary.queue_size > 0 and summary.qubo_dimension >= summary.queue_size)
@@ -21,6 +22,7 @@ def validate_pre_quantum_checks(slot_results: list[SlotResult]) -> dict[str, boo
         "no_multi_assignment": one_hot,
         "twin_variables_update": twin_updates,
         "trigger_rules_active": trigger_activity,
+        "local_load_tracking": local_load_tracking,
         "qubo_dimensions_match_candidate_sets": qubo_dimensions,
         "regional_projection_feasible": regional_projection,
     }

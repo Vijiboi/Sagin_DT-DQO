@@ -57,6 +57,7 @@ class SimulationRunner:
                         ap_id=ap.ap_id,
                         slot=slot,
                         queue_size=len(queue),
+                        local_load=problem.local_load if queue else ap.current_cpu_load / max(ap.cpu_capacity, 1.0),
                         sync_triggered=sync_triggered,
                         coordination_triggered=coordination_triggered,
                         trust=ap.trust,
@@ -79,7 +80,7 @@ class SimulationRunner:
             )
             assignments = self.regional_controller.project(local_summaries, ap_lookup)
             resource_feasible = self._validate_resource_feasibility(assignments, local_summaries, ap_lookup)
-            self._refresh_ap_loads(assignments, ap_lookup)
+            self._refresh_ap_loads(assignments, local_summaries, ap_lookup)
             slot_results.append(build_slot_result(slot, assignments, local_summaries, resource_feasible))
 
         summary = self._build_summary(slot_results)
@@ -100,12 +101,22 @@ class SimulationRunner:
         return [(task_id, destination_id) for task_id, destination_id, _ in best_by_task.values()]
 
     @staticmethod
-    def _refresh_ap_loads(assignments, ap_lookup) -> None:
-        load_counter: dict[str, int] = defaultdict(int)
+    def _refresh_ap_loads(assignments, local_summaries, ap_lookup) -> None:
+        score_map = {}
+        for summary in local_summaries:
+            for score in summary.candidate_scores:
+                score_map[(score.task_id, score.destination_id)] = score
+
+        task_load_counter: dict[str, int] = defaultdict(int)
+        cpu_load_counter: dict[str, float] = defaultdict(float)
         for assignment in assignments:
-            load_counter[assignment.destination_id] += 1
+            score = score_map.get((assignment.task_id, assignment.destination_id))
+            task_load_counter[assignment.destination_id] += 1
+            if score is not None:
+                cpu_load_counter[assignment.destination_id] += score.required_cpu
         for ap_id, ap in ap_lookup.items():
-            ap.current_load = load_counter.get(ap_id, 0)
+            ap.current_task_load = task_load_counter.get(ap_id, 0)
+            ap.current_cpu_load = cpu_load_counter.get(ap_id, 0.0)
 
     @staticmethod
     def _validate_resource_feasibility(assignments, local_summaries, ap_lookup) -> bool:
@@ -148,6 +159,10 @@ class SimulationRunner:
         }
 
         return {
+            "simulation_parameters": {
+                "runtime_config": self.config.to_report_dict(),
+                "paper_parameter_view": self.config.to_paper_parameter_view(),
+            },
             "slots": len(slot_results),
             "average_delay": round(sum(item.delay_cost for item in all_assignments) / assignment_count, 6),
             "average_energy": round(sum(item.energy_cost for item in all_assignments) / assignment_count, 6),
@@ -156,6 +171,10 @@ class SimulationRunner:
             "sync_trigger_count": int(sum(item.sync_trigger_count for item in slot_results)),
             "coordination_trigger_count": int(sum(item.coordination_trigger_count for item in slot_results)),
             "solver_time_per_ap": solver_time_per_ap,
+            "average_local_load": round(
+                sum(summary.local_load for summary in all_local_summaries) / max(len(all_local_summaries), 1),
+                6,
+            ),
             "final_one_hot_assignment_valid": all(slot.one_hot_valid for slot in slot_results),
             "communication_graph_edges": len(self.environment.communication_graph.edges),
             "quantized_dual_by_ap": {

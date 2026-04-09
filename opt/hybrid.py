@@ -30,10 +30,11 @@ class DWaveHybridSolver:
         first = response.first
         end = perf_counter()
         sample = {key: int(value) for key, value in first.sample.items()}
+        samples = [{key: int(value) for key, value in row.sample.items()} for row in response.data(fields=["sample"])]
         return SolveResult(
             sample=sample,
             energy=float(first.energy),
-            samples=[sample],
+            samples=samples or [sample],
             solver_name="dwave_hybrid",
             solver_time=end - start,
         )

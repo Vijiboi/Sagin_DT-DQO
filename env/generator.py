@@ -38,12 +38,12 @@ class SaginEnvironment:
                         cpu_capacity=self.config.cpu_capacity_by_tier[tier],
                         communication_budget=self.config.communication_budget_by_tier[tier],
                         power_budget=self.config.power_budget_by_tier[tier],
-                        trust=self.rng.uniform(0.70, 0.95),
+                        trust=self.rng.uniform(self.config.ap_trust_init_min, self.config.ap_trust_init_max),
                         sync_threshold=self.config.sync_mismatch_threshold,
                         coord_threshold=self.config.coordination_load_threshold,
                         twin_state=TwinState(
                             predicted_load=0.0,
-                            predicted_bandwidth=0.75,
+                            predicted_bandwidth=self.config.ap_initial_predicted_bandwidth,
                             predicted_cpu_ratio=0.0,
                         ),
                     )
@@ -58,17 +58,23 @@ class SaginEnvironment:
                     uav_id=f"UAV_{index}",
                     x=self.rng.uniform(0.0, self.config.area_width),
                     y=self.rng.uniform(0.0, self.config.area_height),
-                    z=self.rng.uniform(8.0, 20.0),
-                    vx=self.rng.uniform(-3.0, 3.0),
-                    vy=self.rng.uniform(-3.0, 3.0),
-                    vz=self.rng.uniform(-0.8, 0.8),
+                    z=self.rng.uniform(self.config.uav_altitude_min, self.config.uav_altitude_max),
+                    vx=self.rng.uniform(self.config.uav_velocity_xy_min, self.config.uav_velocity_xy_max),
+                    vy=self.rng.uniform(self.config.uav_velocity_xy_min, self.config.uav_velocity_xy_max),
+                    vz=self.rng.uniform(self.config.uav_velocity_z_min, self.config.uav_velocity_z_max),
                 )
             )
         return uavs
 
     def step_mobility(self) -> None:
         for uav in self.uavs:
-            bounce_update(uav, self.config.area_width, self.config.area_height, 25.0)
+            bounce_update(
+                uav,
+                self.config.area_width,
+                self.config.area_height,
+                self.config.uav_altitude_min,
+                self.config.uav_max_altitude,
+            )
 
     def ap_by_id(self) -> dict[str, APNode]:
         return {ap.ap_id: ap for ap in self.aps}
@@ -121,9 +127,11 @@ class SaginEnvironment:
         total_tasks: int,
     ) -> Observation:
         queue_size = len(queue)
-        load_ratio = min(queue_size / max(ap.cpu_capacity, 1.0), 1.5)
-        bandwidth_ratio = min(ap.bandwidth / 50.0, 1.0)
-        cpu_ratio = min((queue_size * 2.0) / max(ap.cpu_capacity, 1.0), 1.5)
+        queued_cpu = sum(task.cpu_demand for task in queue)
+        queued_bandwidth = sum(task.bandwidth_demand for task in queue)
+        load_ratio = self._clip_ratio((ap.current_cpu_load + queued_cpu) / max(ap.cpu_capacity, 1.0))
+        bandwidth_ratio = self._clip_ratio(queued_bandwidth / max(ap.communication_budget, 1.0))
+        cpu_ratio = self._clip_ratio(queued_cpu / max(ap.cpu_capacity, 1.0))
         overlap = 0.0
         if total_tasks:
             overlap = sum(len(task.A_u_t) > 1 for task in queue) / max(queue_size, 1)
@@ -136,3 +144,9 @@ class SaginEnvironment:
             queue_size=queue_size,
             candidate_overlap=overlap,
         )
+
+    def _clip_ratio(self, value: float) -> float:
+        clip = self.config.observation_ratio_clip
+        if clip is None:
+            return value
+        return min(value, clip)
