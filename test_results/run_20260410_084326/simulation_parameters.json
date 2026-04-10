@@ -1,0 +1,121 @@
+{
+  "runtime_config": {
+    "seed": 7,
+    "simulation_horizon_slots": 10,
+    "network_topology": {
+      "num_bs": 4,
+      "num_haps": 2,
+      "num_leos": 1,
+      "num_uavs": 50,
+      "candidate_ap_limit": 5,
+      "area_width": 100.0,
+      "area_height": 100.0,
+      "altitude_by_tier": {
+        "BS": 0.03,
+        "UAV": 0.1,
+        "HAP": 20.0,
+        "LEO": 550.0
+      }
+    },
+    "task_generation": {
+      "task_arrival_probability": 0.8,
+      "randomize_task_weights": true,
+      "uav_altitude_min": 8.0,
+      "uav_altitude_max": 20.0,
+      "uav_max_altitude": 25.0,
+      "uav_velocity_xy_min": -3.0,
+      "uav_velocity_xy_max": 3.0,
+      "uav_velocity_z_min": -0.8,
+      "uav_velocity_z_max": 0.8
+    },
+    "tier_resources": {
+      "bandwidth_by_tier": {
+        "BS": 20.0,
+        "UAV": 10.0,
+        "HAP": 100.0,
+        "LEO": 500.0
+      },
+      "communication_budget_by_tier": {
+        "BS": 24.0,
+        "UAV": 15.0,
+        "HAP": 42.0,
+        "LEO": 60.0
+      },
+      "cpu_capacity_by_tier": {
+        "BS": 10.0,
+        "UAV": 5.0,
+        "HAP": 20.0,
+        "LEO": 30.0
+      },
+      "power_budget_by_tier": {
+        "BS": 18.0,
+        "UAV": 10.0,
+        "HAP": 28.0,
+        "LEO": 36.0
+      }
+    },
+    "twin_and_trust": {
+      "sync_age_threshold": 2,
+      "sync_mismatch_threshold": 0.22,
+      "sync_uncertainty_threshold": 0.18,
+      "coordination_load_threshold": 0.75,
+      "coordination_overlap_threshold": 0.85,
+      "coordination_trust_threshold": 0.45,
+      "twin_smoothing": 0.65,
+      "twin_gaussian_std": 0.04,
+      "ap_trust_init_min": 0.7,
+      "ap_trust_init_max": 0.95,
+      "ap_initial_predicted_bandwidth": 0.75,
+      "observation_ratio_clip": 1.5
+    },
+    "qubo_and_solver": {
+      "qubo_penalty": 20.0,
+      "qubo_load_coupling": 0.6,
+      "anneal_reads": 5,
+      "anneal_sweeps": 20
+    },
+    "regional_coordination": {
+      "consensus_step_size": 0.35,
+      "consensus_quantum": 0.1,
+      "consensus_epsilon": 0.08
+    },
+    "objective_weights": {
+      "delay_weight": 1.0,
+      "energy_weight": 0.8,
+      "mission_weight": 1.2,
+      "fidelity_weight": 0.9
+    }
+  },
+  "paper_parameter_view": {
+    "BS Bandwidth": 20.0,
+    "HAP Bandwidth": 100.0,
+    "LEO Bandwidth": 500.0,
+    "BS CPU Capacity": 10.0,
+    "HAP CPU Capacity": 20.0,
+    "LEO CPU Capacity": 30.0,
+    "Number of BSs": 4,
+    "Number of HAPs": 2,
+    "Number of LEO Satellites": 1,
+    "Number of UAV Tasks": 50,
+    "AP Initial Trust Range": [
+      0.7,
+      0.95
+    ],
+    "UAV Altitude Range": [
+      8.0,
+      20.0
+    ],
+    "UAV Mobility Max Altitude": 25.0,
+    "Observation Ratio Clip": 1.5,
+    "Twin-Age Sync Threshold": 2,
+    "Sync Uncertainty Threshold": 0.18,
+    "Sync Mismatch Threshold": 0.22,
+    "Trust Trigger Threshold": 0.45,
+    "Application-Pressure Threshold": 0.75,
+    "Distributed Backend Calls per Slot": 1,
+    "Centralized Reference Solver": "Classical QUBO solver",
+    "Classical Annealing Reads per AP": 5,
+    "Classical Annealing Sweeps per AP": 20,
+    "Simulation Horizon": 10
+  }
+}

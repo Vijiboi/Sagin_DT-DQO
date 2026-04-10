@@ -9,21 +9,21 @@ class SimulationConfig:
     slots: int = 8
     area_width: float = 100.0
     area_height: float = 100.0
-    candidate_ap_limit: int = 3
+    candidate_ap_limit: int = 10
     num_bs: int = 4
     num_haps: int = 2
     num_leos: int = 1
-    num_uavs: int = 12
-    task_arrival_probability: float = 0.8
+    num_uavs: int = 50
+    task_arrival_probability: float = 0.4 #to be adjusted based on desired load
     sync_age_threshold: int = 2
     sync_mismatch_threshold: float = 0.22
     sync_uncertainty_threshold: float = 0.18
     coordination_load_threshold: float = 0.75
-    coordination_overlap_threshold: float = 0.50
+    coordination_overlap_threshold: float = 0.85
     coordination_trust_threshold: float = 0.45
     twin_smoothing: float = 0.65
-    qubo_penalty: float = 6.0
-    qubo_load_coupling: float = 0.35
+    qubo_penalty: float = 40.0
+    qubo_load_coupling: float = 1.0
     consensus_step_size: float = 0.35
     consensus_quantum: float = 0.10
     consensus_epsilon: float = 0.08
@@ -48,19 +48,19 @@ class SimulationConfig:
     uav_velocity_z_max: float = 0.8
     observation_ratio_clip: float | None = 1.5
     cpu_capacity_by_tier: dict[str, float] = field(
-        default_factory=lambda: {"BS": 18.0, "HAP": 30.0, "LEO": 40.0}
+        default_factory=lambda: {"BS": 10.0, "UAV": 10.0, "HAP": 20.0, "LEO": 30.0}
     )
     bandwidth_by_tier: dict[str, float] = field(
-        default_factory=lambda: {"BS": 20.0, "HAP": 35.0, "LEO": 50.0}
+        default_factory=lambda: {"BS": 20.0, "UAV": 20.0, "HAP": 100.0, "LEO": 500.0}
     )
     communication_budget_by_tier: dict[str, float] = field(
-        default_factory=lambda: {"BS": 24.0, "HAP": 42.0, "LEO": 60.0}
+        default_factory=lambda: {"BS": 24.0, "UAV": 15.0, "HAP": 42.0, "LEO": 60.0}
     )
     power_budget_by_tier: dict[str, float] = field(
-        default_factory=lambda: {"BS": 18.0, "HAP": 28.0, "LEO": 36.0}
+        default_factory=lambda: {"BS": 18.0, "UAV": 10.0, "HAP": 28.0, "LEO": 36.0}
     )
     altitude_by_tier: dict[str, float] = field(
-        default_factory=lambda: {"BS": 0.0, "HAP": 20.0, "LEO": 60.0}
+        default_factory=lambda: {"BS": 0.03,"UAV": 0.1, "HAP": 20.0, "LEO": 550.0}
     )
 
     def to_dict(self) -> dict[str, object]:

@@ -58,9 +58,10 @@ class TwinManager:
         )
         return sync_trigger, coordination_trigger
 
-    @staticmethod
-    def _updated_trust(current_trust: float, fidelity: float, uncertainty: float, age: int) -> float:
-        next_trust = 0.70 * current_trust + 0.30 * fidelity - 0.10 * uncertainty - 0.03 * age
+   
+    def _updated_trust(self, current_trust: float, fidelity: float, uncertainty: float, age: int) -> float:
+        age_penalty = (age / self.config.sync_age_threshold) * 0.05
+        next_trust = 0.70 * current_trust + 0.30 * fidelity - 0.10 * uncertainty - age_penalty
         return min(0.99, max(0.10, next_trust))
 
     def _forecast_state(self, twin) -> tuple[float, float, float]:

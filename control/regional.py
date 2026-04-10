@@ -77,7 +77,7 @@ class RegionalController:
             remaining_tasks.remove(task_id)
 
         if not final_assignments and all_scores:
-            return greedy_one_hot_assignment(all_scores)
+            return greedy_one_hot_assignment(all_scores, ap_lookup)
         return final_assignments
 
     @staticmethod

@@ -15,7 +15,7 @@ class CommunicationGraph:
 def build_communication_graph(aps: list[APNode]) -> CommunicationGraph:
     adjacency: dict[str, set[str]] = {ap.ap_id: set() for ap in aps}
     edges: list[tuple[str, str]] = []
-    by_tier: dict[str, list[APNode]] = {"BS": [], "HAP": [], "LEO": []}
+    by_tier: dict[str, list[APNode]] = {"BS": [],"UAV": [], "HAP": [], "LEO": []}
     for ap in aps:
         by_tier.setdefault(ap.tier, []).append(ap)
 

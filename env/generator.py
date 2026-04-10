@@ -23,6 +23,7 @@ class SaginEnvironment:
             "BS": self.config.num_bs,
             "HAP": self.config.num_haps,
             "LEO": self.config.num_leos,
+            "UAV": self.config.num_uavs,
         }
         for tier, count in tier_counts.items():
             for index in range(count):

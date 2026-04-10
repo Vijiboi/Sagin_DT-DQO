@@ -7,19 +7,27 @@ This scaffold implements the paper workflow in two stages:
 
 ## Folder Layout
 
-- `env/`: SAGIN environment generation, mobility, task creation, and directed communication graph.
-- `twin/`: local twin forecast, Gaussian innovation, mismatch, fidelity, trust, sync, and coordination triggers.
-- `opt/`: local QUBO construction with coupling penalties, classical solver, and D-Wave hybrid hook.
+- `env/`: Core SAGIN environment. Handles 3D mobility, task generation with randomized weights, and a directed communication graph for the 50-UAV swarm..
+- `twin/`: The Digital Twin (DT) manager. Implements Gaussian innovation models to track state fidelity, uncertainty, and mismatch triggers for autonomous synchronization.
+- `opt/`: The Optimization engine. Translates offloading costs into QUBO (Quadratic Unconstrained Binary Optimization) forms, featuring multi-tier coupling penalties to prevent resource hotspots.
 - `control/`: quantized consensus state, regional projection, and final one-hot assignment enforcement with resource budgets.
 - `sim/`: end-to-end simulator runner and CLI entrypoint.
 - `results/`: metrics aggregation and CSV/JSON writers.
+- `test_result` & `final_simulation_output`: These directories were utilized for Phase 1 stress-testing and parameter tuning. They contain historical data verifying the transition from resource-blind to resource-aware offloading.
 
 ## Run
 
 ```powershell
-python -m sim.main --slots 8 --seed 7 --reads 5 --sweeps 20
+python -m sim.main --slots 8 --seed 7 --output-dir results
 ```
+## Testing & Validation
+The repository includes a comprehensive unit-testing suite to verify the logic of individual tiers before full integration:
+`test_env.py`: Validates SAGIN node generation and mobility boundaries.
+`test_twin.py`: Tests the Digital Twin's ability to trigger sync events based on state mismatch.
+`test_opt.py`: Verifies that the QUBO builder generates valid "one-hot" assignments.
+`test_control.py`: Confirms that the Quantized Consensus correctly increases "dual prices" under high resource pressure.
+`test_sim.py`: A lightweight end-to-end runner used for rapid logic verification.
 
-## Phase 2
+## Phase 2 Quantum Integration
 
-Keep the DTN logic unchanged and replace only the local solver call with `opt.hybrid.DWaveHybridSolver`.
+The architecture supports seamless transition to Quantum hardware. To move beyond classical heuristics, replace the local solver call in `sim/runner.py` with the `opt.hybrid.DWaveHybridSolver` hook to utilize the D-Wave Leap Hybrid Sampler.
