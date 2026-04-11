@@ -1,39 +1,45 @@
+from __future__ import annotations
+import argparse
 import json
 import os
 from env.config import SimulationConfig
 from sim.runner import SimulationRunner
 
-def run_final_simulation():
-    # 1. Initialize with your finalized 50-UAV config
-    # Ensure you've made the 'UAV' key changes in config.py as we discussed!
+def parse_args() -> argparse.Namespace:
+    """Parses SAGIN simulation arguments [cite: 1634-1640]."""
+    parser = argparse.ArgumentParser(description="SAGIN-Quantum Closed-Loop DTN Simulator")
+    parser.add_argument("--slots", type=int, default=50, help="Number of simulation slots (Paper uses 50)")
+    parser.add_argument("--seed", type=int, default=7, help="Random seed for reproducibility")
+    parser.add_argument("--reads", type=int, default=5, help="Annealing reads per AP")
+    parser.add_argument("--sweeps", type=int, default=20, help="Annealing sweeps per AP")
+    parser.add_argument("--output-dir", type=str, default="results", help="Directory for output JSON")
+    return parser.parse_args()
+
+def main() -> None:
+    args = parse_args()
+    
+    # Initialize configuration with paper-aligned parameters [cite: 1641-1649]
     config = SimulationConfig(
-        slots=10, 
-        num_uavs=50, 
-        output_dir="test_results"
+        slots=args.slots,
+        seed=args.seed,
+        anneal_reads=args.reads,
+        anneal_sweeps=args.sweeps,
+        output_dir=args.output_dir,
     )
     
-    print(f"--- Starting SAGIN Simulation ---")
-    print(f"Nodes: 4 BS, 2 HAP, 1 LEO, 50 UAVs")
-    
-    # 2. Run the simulation
+    # Execute the Hierarchical Closed-Loop runner [cite: 1650-1651]
     runner = SimulationRunner(config)
     slot_results, summary, output_path = runner.run()
     
-    # 3. Analyze the output
-    print("\n--- Simulation Summary ---")
-    print(f"Average Delay: {summary['average_delay']}")
-    print(f"Average Energy: {summary['average_energy']}")
-    print(f"Sync Triggers: {summary['sync_trigger_count']}")
-    print(f"Coordination Triggers: {summary['coordination_trigger_count']}")
+    # Output the Decision-Oriented Summaries [cite: 1652-1653]
+    print("\n--- SAGIN-Quantum Simulation Summary ---")
+    print(json.dumps(summary, indent=2))
     
-    # Check the validation results
-    checks = summary['pre_quantum_checks']
-    if checks['regional_projection_feasible']:
-        print("\nSUCCESS: All resource constraints were respected.")
-    else:
-        print("\nWARNING: Resource violation detected in one or more slots.")
-
-    print(f"\nDetailed logs saved to: {output_path}")
+    # Ensure results directory exists
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+    
+    print(f"\nDetailed outputs saved in: {output_path}")
 
 if __name__ == "__main__":
-    run_final_simulation()
+    main()

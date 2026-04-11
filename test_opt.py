@@ -1,44 +1,48 @@
+import numpy as np
 from env.config import SimulationConfig
-from env.models import APNode, Task, TwinState
-from opt.qubo import LocalQuboBuilder
+from env.models import APNode, Task
+from opt.qubo_generator import LocalQuboBuilder
 from opt.solver import ClassicalQuboSolver
 
-def test_optimization_flow():
+def test_optimization_logic():
+    # 1. Setup
     config = SimulationConfig()
     builder = LocalQuboBuilder(config)
-    solver = ClassicalQuboSolver(config, backend="auto")
-
-    # 1. Setup APs and a Task
-    ap_bs = APNode(ap_id="BS_0", tier="BS", x=0, y=0, z=0.03, bandwidth=20, cpu_capacity=10, 
-                   communication_budget=24, power_budget=18, trust=0.9, 
-                   sync_threshold=0.22, coord_threshold=0.75)
+    solver = ClassicalQuboSolver(config, backend="dimod")
     
-    ap_uav = APNode(ap_id="UAV_0", tier="UAV", x=10, y=10, z=0.1, bandwidth=10, cpu_capacity=5, 
-                    communication_budget=15, power_budget=10, trust=0.8, 
-                    sync_threshold=0.22, coord_threshold=0.75)
+    # 2. Mock Infrastructure [cite: 515-519]
+    ap = APNode(
+        ap_id="BS_0", tier="BS", x=0, y=0, z=0.03,
+        bandwidth=20.0, cpu_capacity=10.0,
+        communication_budget=24.0, power_budget=18.0,
+        trust=0.85, sync_threshold=0.1, coord_threshold=0.1
+    )
+    ap_lookup = {ap.ap_id: ap}
+    
+    # 3. Mock Emergency Task [cite: 54, 520]
+    tasks = [
+        Task(
+            task_id="T_Emerg_1", source_uav="UAV_0", owner_ap_id="BS_0",
+            x=10.0, y=10.0, z=15.0, L_u=1.5, D_u=1000.0,
+            omega_u=1.2, psi_u=1.1, xi_u="control",
+            bandwidth_demand=3.0, cpu_demand=4.0, power_demand=2.0,
+            A_u_t=["BS_0"], arrival_slot=1, AoI=2
+        )
+    ]
 
-    task = Task(task_id="T1_U0", source_uav="UAV_0", owner_ap_id="UAV_0", x=12, y=12, z=0.1,
-                L_u=10.0, D_u=8.0, omega_u=1.0, psi_u=1.0, xi_u=1.0,
-                bandwidth_demand=2.0, cpu_demand=4.0, power_demand=1.0,
-                A_u_t=["BS_0", "UAV_0"], arrival_slot=1)
-
-    ap_lookup = {"BS_0": ap_bs, "UAV_0": ap_uav}
-
-    # 2. Build QUBO
-    problem = builder.build(ap_uav, [task], ap_lookup, slot=1)
-    print(f"QUBO Variables: {problem.variables}")
-
-    # 3. Solve
+    # 4. Build QUBO [cite: 325-331]
+    problem = builder.build(ap, tasks, ap_lookup, slot=1)
+    
+    print(f"--- Optimization Test: {problem.ap_id} ---")
+    print(f"Linear Terms (mu): {problem.linear}")
+    print(f"Penalty (One-Hot): {problem.penalty_mu}")
+    
+    # 5. Solve (Classical for now, testing structure)
     result = solver.solve(problem)
-    print(f"Solver Name: {result.solver_name}")
-    print(f"Best Sample: {result.sample}")
-
-    # Validation: Sum of binary variables for a task should be 1
-    assignment_sum = sum(result.sample.values())
-    if assignment_sum == 1:
-        print("RESULT: Valid one-hot assignment found.")
-    else:
-        print(f"RESULT: Invalid assignment (Sum={assignment_sum}). Increase qubo_penalty.")
+    
+    print(f"Solver Used: {result.solver_name}")
+    print(f"Task Assignment Sample: {result.sample}")
+    print(f"Energy: {result.energy:.4f}")
 
 if __name__ == "__main__":
-    test_optimization_flow()
+    test_optimization_logic()

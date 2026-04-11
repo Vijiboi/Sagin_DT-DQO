@@ -1,11 +1,9 @@
 from __future__ import annotations
-
-from math import exp
+from math import exp, sqrt
 from random import Random
-
+import numpy as np
 from env.config import SimulationConfig
 from env.models import APNode, Observation
-
 
 class TwinManager:
     def __init__(self, config: SimulationConfig):
@@ -13,65 +11,95 @@ class TwinManager:
         self.rng = Random(config.seed + 101)
 
     def update(self, ap: APNode, observation: Observation) -> tuple[bool, bool]:
+        """
+        Closes the loop between physical observations and twin evolution[cite: 7].
+        Returns: (sync_triggered, coordination_triggered)
+        """
         twin = ap.twin_state
-        alpha = self.config.twin_smoothing
-        observed = (
+        beta = self.config.twin_smoothing  # Corresponding to beta parameters in [cite: 119-127]
+        
+        # 1. Physical Observation Vector s_m(t) [cite: 115]
+        # Components: observed channel/load/reliability/anomaly/mission-pressure
+        s_obs = np.array([
             observation.load_ratio,
             observation.bandwidth_ratio,
             observation.cpu_ratio,
-        )
-        forecast = self._forecast_state(twin)
-        deltas = [abs(obs - pred) for obs, pred in zip(observed, forecast)]
-        mismatch = sum(deltas) / len(deltas)
-        uncertainty = max(deltas)
-        fidelity = exp(-2.5 * mismatch)
+            # Placeholder for anomaly/reliability from observation model
+            0.0, 
+            observation.candidate_overlap 
+        ])
 
-        sync_trigger = (
-            twin.age >= self.config.sync_age_threshold
-            or mismatch >= self.config.sync_mismatch_threshold
-            or uncertainty >= self.config.sync_uncertainty_threshold
-        )
-
-        if sync_trigger:
-            posterior = observed
-            twin.age = 0
-        else:
-            posterior = tuple(
-                alpha * prior + (1.0 - alpha) * obs for prior, obs in zip(forecast, observed)
-            )
-            twin.age += 1
-
-        twin.predicted_load = posterior[0]
-        twin.predicted_bandwidth = posterior[1]
-        twin.predicted_cpu_ratio = posterior[2]
-        twin.uncertainty = uncertainty
-        twin.mismatch = mismatch
-        twin.fidelity = fidelity
-        twin.last_observation = observed
-        twin.forecast_state = forecast
-
-        ap.trust = self._updated_trust(ap.trust, fidelity, uncertainty, twin.age)
-        coordination_trigger = (
-            observation.load_ratio >= self.config.coordination_load_threshold
-            or observation.candidate_overlap >= self.config.coordination_overlap_threshold
-            or ap.trust <= self.config.coordination_trust_threshold
-        )
-        return sync_trigger, coordination_trigger
-
-   
-    def _updated_trust(self, current_trust: float, fidelity: float, uncertainty: float, age: int) -> float:
-        age_penalty = (age / self.config.sync_age_threshold) * 0.05
-        next_trust = 0.70 * current_trust + 0.30 * fidelity - 0.10 * uncertainty - age_penalty
-        return min(0.99, max(0.10, next_trust))
-
-    def _forecast_state(self, twin) -> tuple[float, float, float]:
-        base = (
+        # 2. Extract current Twin Predicted State s_hat_m(t) [cite: 136]
+        s_hat = np.array([
             twin.predicted_load,
             twin.predicted_bandwidth,
             twin.predicted_cpu_ratio,
+            0.0, # Reliability prediction
+            twin.predicted_cpu_ratio # Mission pressure summary prediction
+        ])
+
+        # 3. Evaluate Twin Mismatch and Uncertainty [cite: 141, 135]
+        # epsilon_m(t) = ||s_m(t) - s_hat_m(t)||_2
+        mismatch = np.linalg.norm(s_obs - s_hat)
+        normalized_mismatch = min(1.0, mismatch / self.config.observation_ratio_clip)
+        
+        # Sigma_m(t+1) = beta*Sigma_m(t) + (1-beta)*||innovation||^2 
+        innovation_energy = np.sum((s_obs - s_hat)**2)
+        uncertainty = (beta * twin.uncertainty) + (1.0 - beta) * innovation_energy
+
+        # 4. Evaluate Twin Fidelity F_m(t) 
+        # F_m(t) = exp(-kappa_eps * epsilon_bar - kappa_A * age)
+        # Using paper coefficients: kappa_eps=1.0, kappa_A=0.1 (implied by thresholds)
+        fidelity = exp(-1.0 * normalized_mismatch - 0.1 * twin.age)
+
+        # 5. Evaluate Synchronization Trigger a_m^sync(t) 
+        # Triggered by Age, Uncertainty, Mismatch, or Fidelity Requirements
+        sync_trigger = (
+            twin.age > self.config.sync_age_threshold or
+            uncertainty > self.config.sync_uncertainty_threshold or
+            normalized_mismatch > self.config.sync_mismatch_threshold or
+            fidelity < 0.5 # Baseline fidelity requirement
         )
-        forecast = []
-        for value in base:
-            innovation = self.rng.gauss(0.0, self.config.twin_gaussian_std)
-            forecast.append(min(1.5, max(0.0, value + innovation)))
-        return tuple(forecast)
+
+        # 6. Perform State Update [cite: 119-132]
+        if sync_trigger:
+            # Refresh using newly observed physical information
+            twin.predicted_load = s_obs[0]
+            twin.predicted_bandwidth = s_obs[1]
+            twin.predicted_cpu_ratio = s_obs[2]
+            twin.age = 1 # Reset age to 1 
+        else:
+            # Passive evolution (Age increases, state remains constant/drifts)
+            twin.age += 1 
+
+        # Update remaining twin metrics
+        twin.uncertainty = uncertainty
+        twin.mismatch = normalized_mismatch
+        twin.fidelity = fidelity
+        twin.last_observation = tuple(s_obs[:3])
+
+        # 7. Update Trust State tau_m(t+1) [cite: 157]
+        # tau_m(t+1) = projection((1-zeta)*tau_m(t) + zeta*[a1*q + a2*(1-eps) + a3*(1-chi)])
+        ap.trust = self._update_trust(ap, s_obs, normalized_mismatch)
+
+        # 8. Evaluate Regional Coordination Trigger chi_m^trig(t) 
+        coordination_trigger = (
+            abs(ap.trust - twin.mismatch) > self.config.coord_trust_threshold or # Trust variation
+            mismatch > self.config.coord_state_threshold or
+            uncertainty > self.config.coord_uncertainty_threshold or
+            normalized_mismatch > self.config.coord_mismatch_threshold
+        )
+
+        return sync_trigger, coordination_trigger
+
+    def _update_trust(self, ap: APNode, s_obs: np.ndarray, norm_mismatch: float) -> float:
+        """Implements the Trust Evolution Equation[cite: 157]."""
+        zeta = self.config.trust_update_factor
+        a1, a2, a3 = self.config.trust_weights
+        
+        # Reliability (q), mismatch-inverse (1-eps), anomaly-inverse (1-chi)
+        q_obs = 1.0 - (s_obs[0] * 0.1) # Simplified reliability mapping
+        innovation = (a1 * q_obs) + (a2 * (1.0 - norm_mismatch)) + (a3 * 1.0)
+        
+        new_trust = (1.0 - zeta) * ap.trust + zeta * innovation
+        return min(1.0, max(0.0, new_trust)) # Projection onto [0,1]
