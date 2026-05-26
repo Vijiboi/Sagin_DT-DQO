@@ -1,0 +1,36 @@
+{
+  "slots": 40,
+  "densities": [
+    10,
+    20,
+    30,
+    40,
+    50
+  ],
+  "seeds": [
+    7,
+    13,
+    21
+  ],
+  "focus_uavs": 20,
+  "methods": {
+    "proposed": {
+      "label": "Proposed (Solver-Guided Hierarchical)",
+      "backend": "auto",
+      "use_solver_guidance": true,
+      "projection": "hierarchical",
+      "color": "#1b9e77",
+      "linestyle": "-",
+      "marker": "o"
+    },
+    "baseline": {
+      "label": "Baseline (Greedy Multi-Candidate Offloading)",
+      "backend": null,
+      "use_solver_guidance": false,
+      "projection": "greedy",
+      "color": "#d95f02",
+      "linestyle": "--",
+      "marker": "s"
+    }
+  }
+}

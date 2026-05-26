@@ -1,0 +1,7 @@
+{
+  "simulation_horizon": 50,
+  "sync_triggers": 348,
+  "coord_triggers": 500,
+  "one_hot_validity": true,
+  "avg_fidelity": 0.6795
+}

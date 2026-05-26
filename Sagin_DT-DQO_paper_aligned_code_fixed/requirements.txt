@@ -1,0 +1,5 @@
+dimod>=0.12; python_version >= "3.10"
+dwave-neal>=0.6; python_version >= "3.10"
+dwave-system>=1.25; python_version >= "3.10"
+matplotlib>=3.8; python_version >= "3.10"
+numpy>=1.26; python_version >= "3.10"

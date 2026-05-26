@@ -1,0 +1,2 @@
+slot,average_delay,average_energy,mission_cost,fidelity_cost,sync_trigger_count,coordination_trigger_count,one_hot_valid,resource_feasible,local_execution_count
+1,118.426259,0.0,0.178627,4.728646,6,10,1,1,8
