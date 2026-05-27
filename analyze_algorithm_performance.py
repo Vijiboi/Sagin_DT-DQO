@@ -46,6 +46,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seeds", type=str, default="7,13", help="Comma-separated random seeds.")
     parser.add_argument("--focus-uavs", type=int, default=20, help="UAV count used for convergence-over-time plots.")
     parser.add_argument("--output-dir", type=str, default="comparison_results", help="Root directory for outputs.")
+    parser.add_argument(
+        "--smooth-window",
+        type=int,
+        default=5,
+        help="Centered moving-average window for convergence figures only. Raw CSV metrics are unchanged.",
+    )
+    parser.add_argument(
+        "--show-raw-convergence",
+        action="store_true",
+        help="Overlay faint unsmoothed convergence traces behind the smoothed mean curves.",
+    )
     return parser.parse_args()
 
 
@@ -105,6 +116,19 @@ def run_case(method_key: str, config: SimulationConfig) -> dict[str, object]:
 def aggregate_series(records: list[dict[str, object]], key: str) -> tuple[np.ndarray, np.ndarray]:
     stacked = np.vstack([record[key] for record in records])
     return np.mean(stacked, axis=0), np.std(stacked, axis=0)
+
+
+def smooth_series(values: np.ndarray, window: int) -> np.ndarray:
+    """Plot-only centered moving average with edge padding."""
+    if window <= 1 or len(values) <= 2:
+        return values
+    window = min(window, len(values))
+    if window % 2 == 0:
+        window += 1
+    pad = window // 2
+    padded = np.pad(values, (pad, pad), mode="edge")
+    kernel = np.ones(window, dtype=float) / window
+    return np.convolve(padded, kernel, mode="valid")
 
 
 def ensure_dir(path: Path) -> Path:
@@ -195,14 +219,34 @@ def style_plot() -> None:
     )
 
 
-def plot_series(path: Path, x: np.ndarray, methods_by_seed: dict[str, list[dict[str, object]]], key: str, ylabel: str, title: str) -> None:
+def plot_series(
+    path: Path,
+    x: np.ndarray,
+    methods_by_seed: dict[str, list[dict[str, object]]],
+    key: str,
+    ylabel: str,
+    title: str,
+    smooth_window: int = 1,
+    show_raw: bool = False,
+) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 3.6))
     for method_key, records in methods_by_seed.items():
         mean_values, std_values = aggregate_series(records, key)
+        plot_values = smooth_series(mean_values, smooth_window)
+        plot_std = smooth_series(std_values, smooth_window)
         meta = METHODS[method_key]
+        if show_raw:
+            ax.plot(
+                x,
+                mean_values,
+                color=meta["color"],
+                linewidth=0.9,
+                linestyle=meta["linestyle"],
+                alpha=0.25,
+            )
         ax.plot(
             x,
-            mean_values,
+            plot_values,
             label=meta["label"],
             color=meta["color"],
             linewidth=1.8,
@@ -211,7 +255,7 @@ def plot_series(path: Path, x: np.ndarray, methods_by_seed: dict[str, list[dict[
             markersize=3.5,
         )
         if len(records) > 1:
-            ax.fill_between(x, mean_values - std_values, mean_values + std_values, color=meta["color"], alpha=0.15)
+            ax.fill_between(x, plot_values - plot_std, plot_values + plot_std, color=meta["color"], alpha=0.15)
     ax.set_xlabel("Time Slot")
     ax.set_ylabel(ylabel)
     ax.set_title(title)
@@ -267,6 +311,8 @@ def main() -> None:
         "densities": densities,
         "seeds": seeds,
         "focus_uavs": args.focus_uavs,
+        "smooth_window": args.smooth_window,
+        "show_raw_convergence": args.show_raw_convergence,
         "methods": METHODS,
     }
     (study_dir / "study_config.json").write_text(json.dumps(study_config, indent=2), encoding="utf-8")
@@ -289,6 +335,8 @@ def main() -> None:
         "cumulative_delay",
         "Cumulative Average Service Delay",
         "Convergence of Average Service Delay",
+        smooth_window=args.smooth_window,
+        show_raw=args.show_raw_convergence,
     )
     plot_series(
         figures_dir / "delay_over_slots.png",
@@ -297,6 +345,8 @@ def main() -> None:
         "slot_delay",
         "Average Service Delay",
         "Average Service Delay Over Time Slots",
+        smooth_window=args.smooth_window,
+        show_raw=args.show_raw_convergence,
     )
     plot_series(
         figures_dir / "fidelity_over_slots.png",
@@ -305,6 +355,8 @@ def main() -> None:
         "slot_fidelity",
         "Average Twin Fidelity",
         "Average Twin Fidelity Over Time Slots",
+        smooth_window=args.smooth_window,
+        show_raw=args.show_raw_convergence,
     )
     plot_series(
         figures_dir / "sync_triggers_over_slots.png",
@@ -313,6 +365,8 @@ def main() -> None:
         "slot_sync",
         "Average Sync Triggers",
         "Average Sync Triggers Over Time Slots",
+        smooth_window=args.smooth_window,
+        show_raw=args.show_raw_convergence,
     )
 
     density_rows: list[dict[str, object]] = []
