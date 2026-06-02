@@ -29,6 +29,8 @@ class RegionalController:
             all_scores.extend(summary.candidate_scores)
             for score in summary.candidate_scores:
                 all_scores_by_task[score.task_id].append(score)
+        sync_ap_ids = {summary.ap_id for summary in local_summaries if summary.sync_triggered}
+        coord_ap_ids = {summary.ap_id for summary in local_summaries if summary.coordination_triggered}
 
         final_assignments: list[FinalAssignment] = []
         # Track selected load for reporting. The paper proof-of-concept uses
@@ -52,6 +54,8 @@ class RegionalController:
                 greedy_assignments,
                 task_map,
                 ap_lookup,
+                sync_ap_ids,
+                coord_ap_ids,
             )
 
         remaining_tasks = set(all_scores_by_task.keys())
@@ -69,6 +73,8 @@ class RegionalController:
                     task_obj, 
                     ap_lookup,
                     resource_usage,
+                    sync_ap_ids,
+                    coord_ap_ids,
                 )
                 
                 # Fidelity is handled in the ranking penalty. Equal-share AP
@@ -83,7 +89,14 @@ class RegionalController:
                     # Priority: favor tasks with fewer feasible options or higher cost [cite: 1540-1549]
                     ranked_tasks.append((
                         len(feasible_scores), 
-                        self._projected_objective(best_s, task_obj, ap_lookup, resource_usage) + best_s.coupling_penalty,
+                        self._projected_objective(
+                            best_s,
+                            task_obj,
+                            ap_lookup,
+                            resource_usage,
+                            sync_ap_ids,
+                            coord_ap_ids,
+                        ) + best_s.coupling_penalty,
                         task_id, 
                         feasible_scores
                     ))
@@ -125,6 +138,8 @@ class RegionalController:
                 greedy_assignments,
                 task_map,
                 ap_lookup,
+                sync_ap_ids,
+                coord_ap_ids,
             )
 
         # Paper one-hot set includes m=0 local UAV execution. Use it as the
@@ -134,7 +149,13 @@ class RegionalController:
             if task:
                 final_assignments.append(self._local_execution_assignment(task))
             
-        return self._reprice_with_equal_sharing(final_assignments, task_map, ap_lookup)
+        return self._reprice_with_equal_sharing(
+            final_assignments,
+            task_map,
+            ap_lookup,
+            sync_ap_ids,
+            coord_ap_ids,
+        )
 
     def _local_execution_assignment(self, task: Task) -> FinalAssignment:
         delay = (task.L_u * task.D_u) / max(self.config.uav_local_cpu_capacity, 1e-9)
@@ -155,7 +176,11 @@ class RegionalController:
         assignments: list[FinalAssignment],
         task_map: dict[str, Task],
         ap_lookup: dict[str, APNode],
+        sync_ap_ids: set[str] | None = None,
+        coord_ap_ids: set[str] | None = None,
     ) -> list[FinalAssignment]:
+        sync_ap_ids = sync_ap_ids or set()
+        coord_ap_ids = coord_ap_ids or set()
         assigned_per_ap: dict[str, int] = defaultdict(int)
         for assignment in assignments:
             if assignment.destination_id != "LOCAL":
@@ -171,12 +196,23 @@ class RegionalController:
             ap = ap_lookup[assignment.destination_id]
             load_count = max(float(assigned_per_ap[assignment.destination_id]), 1.0)
             rate = predicted_uplink_rate(task, ap, self.config, load_count)
-            delay = (task.L_u / rate) + (task.L_u * task.D_u * load_count) / max(ap.cpu_capacity, 1e-9)
-            energy = self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity / load_count) ** 2
+            sync_active = assignment.destination_id in sync_ap_ids
+            coord_active = assignment.destination_id in coord_ap_ids
+            delay = (
+                (task.L_u / rate)
+                + (task.L_u * task.D_u * load_count) / max(ap.cpu_capacity, 1e-9)
+                + self._sync_delay(ap, sync_active)
+                + self._coord_delay(ap, coord_active)
+            )
+            energy = (
+                self.config.uav_transmit_power * (task.L_u / rate)
+                + self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity / load_count) ** 2
+                + self._sync_energy(ap, sync_active)
+            )
             freshness = 1.0 - np.exp(-self.config.eta_u * task.AoI)
             mission = task.psi_u * (1.0 - ap.trust) * freshness
             fidelity = 1.0 - ap.twin_state.fidelity
-            sync = 1.0 if ap.twin_state.age == 1 else 0.0
+            sync = 1.0 if sync_active else 0.0
             delay_cost = self.config.delay_weight * delay
             energy_cost = self.config.energy_weight * energy
             local_cost = (
@@ -214,12 +250,21 @@ class RegionalController:
         task: Task,
         ap_lookup: dict[str, APNode],
         resource_usage: dict[str, dict[str, float]],
+        sync_ap_ids: set[str],
+        coord_ap_ids: set[str],
     ) -> list[CandidateScore]:
         lambda_f = 1e6
         return sorted(
             scores,
             key=lambda score: (
-                self._projected_objective(score, task, ap_lookup, resource_usage)
+                self._projected_objective(
+                    score,
+                    task,
+                    ap_lookup,
+                    resource_usage,
+                    sync_ap_ids,
+                    coord_ap_ids,
+                )
                 + score.coupling_penalty
                 + (lambda_f if ap_lookup[score.destination_id].twin_state.fidelity < task.F_u_min else 0.0)
             ),
@@ -231,16 +276,31 @@ class RegionalController:
         task: Task,
         ap_lookup: dict[str, APNode],
         resource_usage: dict[str, dict[str, float]],
+        sync_ap_ids: set[str] | None = None,
+        coord_ap_ids: set[str] | None = None,
     ) -> float:
+        sync_ap_ids = sync_ap_ids or set()
+        coord_ap_ids = coord_ap_ids or set()
         ap = ap_lookup[score.destination_id]
         load_count = max(resource_usage[score.destination_id]["tasks"] + 1.0, 1.0)
         rate = predicted_uplink_rate(task, ap, self.config, load_count)
-        delay = (task.L_u / rate) + (task.L_u * task.D_u * load_count) / max(ap.cpu_capacity, 1e-9)
-        energy = self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity / load_count) ** 2
+        sync_active = score.destination_id in sync_ap_ids
+        coord_active = score.destination_id in coord_ap_ids
+        delay = (
+            (task.L_u / rate)
+            + (task.L_u * task.D_u * load_count) / max(ap.cpu_capacity, 1e-9)
+            + self._sync_delay(ap, sync_active)
+            + self._coord_delay(ap, coord_active)
+        )
+        energy = (
+            self.config.uav_transmit_power * (task.L_u / rate)
+            + self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity / load_count) ** 2
+            + self._sync_energy(ap, sync_active)
+        )
         freshness = 1.0 - np.exp(-self.config.eta_u * task.AoI)
         mission = task.psi_u * (1.0 - ap.trust) * freshness
         fidelity = 1.0 - ap.twin_state.fidelity
-        sync = 1.0 if ap.twin_state.age == 1 else 0.0
+        sync = 1.0 if sync_active else 0.0
         return float(
             self.config.delay_weight * delay
             + self.config.energy_weight * energy
@@ -253,3 +313,18 @@ class RegionalController:
     def _is_feasible(score: CandidateScore, ap_lookup, resource_usage):
         """AP candidates remain feasible under the paper's equal-share model."""
         return True
+
+    def _sync_delay(self, ap: APNode, active: bool) -> float:
+        if not active:
+            return 0.0
+        return float(self.config.sync_delay_by_tier.get(ap.tier, 0.0))
+
+    def _coord_delay(self, ap: APNode, active: bool) -> float:
+        if not active:
+            return 0.0
+        return float(self.config.coord_signal_delay_by_tier.get(ap.tier, 0.0))
+
+    def _sync_energy(self, ap: APNode, active: bool) -> float:
+        if not active:
+            return 0.0
+        return float(self.config.sync_energy_by_tier.get(ap.tier, 0.0))

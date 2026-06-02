@@ -1,0 +1,42 @@
+{
+  "slots": 500,
+  "seeds": [
+    7,
+    13,
+    21,
+    31,
+    43
+  ],
+  "focus_uavs": 20,
+  "densities": [
+    10,
+    20,
+    30,
+    40,
+    50
+  ],
+  "consensus_steps": [
+    0.15,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "delay_weights": [
+    0.5,
+    1.0,
+    2.0,
+    4.0
+  ],
+  "energy_scale": 1.0,
+  "stable_profile_enabled": true,
+  "stable_profile": {
+    "twin_smoothing": 0.8,
+    "sensor_filter_factor": 0.8,
+    "trust_update_factor": 0.2,
+    "consensus_step_size": 0.25,
+    "consensus_quantum": 0.05,
+    "consensus_epsilon": 0.03,
+    "anneal_reads": 20,
+    "anneal_sweeps": 80
+  }
+}

@@ -85,6 +85,7 @@ def run_case(method_key: str, config: SimulationConfig) -> dict[str, object]:
     slot_results, summary, _ = runner.run()
 
     slot_delay = np.array([result.average_delay for result in slot_results], dtype=float)
+    slot_energy = np.array([result.total_energy for result in slot_results], dtype=float)
     slot_fidelity = np.array(
         [np.mean([summary_item.fidelity for summary_item in result.local_summaries]) for result in slot_results],
         dtype=float,
@@ -98,12 +99,15 @@ def run_case(method_key: str, config: SimulationConfig) -> dict[str, object]:
 
     return {
         "slot_delay": slot_delay,
+        "slot_energy": slot_energy,
         "cumulative_delay": np.cumsum(slot_delay) / np.arange(1, len(slot_delay) + 1),
+        "cumulative_energy": np.cumsum(slot_energy) / np.arange(1, len(slot_energy) + 1),
         "slot_fidelity": slot_fidelity,
         "slot_solver_time": slot_solver_time,
         "slot_throughput": slot_throughput,
         "slot_sync": slot_sync,
         "avg_delay": float(np.mean(slot_delay)),
+        "avg_total_energy": float(np.mean(slot_energy)),
         "avg_fidelity": float(np.mean(slot_fidelity)),
         "avg_solver_time": float(np.mean(slot_solver_time)),
         "total_solver_time": float(np.sum(slot_solver_time)),
@@ -147,6 +151,8 @@ def write_convergence_csv(path: Path, methods_by_seed: dict[str, list[dict[str, 
                 "average_delay",
                 "cumulative_average_delay",
                 "average_fidelity",
+                "total_energy",
+                "cumulative_total_energy",
                 "solver_time",
                 "throughput",
                 "sync_triggers",
@@ -164,6 +170,8 @@ def write_convergence_csv(path: Path, methods_by_seed: dict[str, list[dict[str, 
                             round(float(record["slot_delay"][slot]), 6),
                             round(float(record["cumulative_delay"][slot]), 6),
                             round(float(record["slot_fidelity"][slot]), 6),
+                            round(float(record["slot_energy"][slot]), 6),
+                            round(float(record["cumulative_energy"][slot]), 6),
                             round(float(record["slot_solver_time"][slot]), 6),
                             round(float(record["slot_throughput"][slot]), 6),
                             round(float(record["slot_sync"][slot]), 6),
@@ -181,6 +189,7 @@ def write_density_csv(path: Path, density_rows: list[dict[str, object]]) -> None
                 "seed",
                 "avg_delay",
                 "avg_fidelity",
+                "avg_total_energy",
                 "avg_solver_time",
                 "total_solver_time",
                 "avg_throughput",
@@ -195,6 +204,7 @@ def write_density_csv(path: Path, density_rows: list[dict[str, object]]) -> None
                     row["seed"],
                     round(float(row["avg_delay"]), 6),
                     round(float(row["avg_fidelity"]), 6),
+                    round(float(row["avg_total_energy"]), 6),
                     round(float(row["avg_solver_time"]), 6),
                     round(float(row["total_solver_time"]), 6),
                     round(float(row["avg_throughput"]), 6),
@@ -359,6 +369,16 @@ def main() -> None:
         show_raw=args.show_raw_convergence,
     )
     plot_series(
+        figures_dir / "energy_convergence.png",
+        x_slots,
+        convergence_records,
+        "cumulative_energy",
+        "Cumulative Total AP Energy",
+        "Convergence of Total AP Energy",
+        smooth_window=args.smooth_window,
+        show_raw=args.show_raw_convergence,
+    )
+    plot_series(
         figures_dir / "sync_triggers_over_slots.png",
         x_slots,
         convergence_records,
@@ -385,6 +405,7 @@ def main() -> None:
                         "seed": seed,
                         "avg_delay": result["avg_delay"],
                         "avg_fidelity": result["avg_fidelity"],
+                        "avg_total_energy": result["avg_total_energy"],
                         "avg_solver_time": result["avg_solver_time"],
                         "total_solver_time": result["total_solver_time"],
                         "avg_throughput": result["avg_throughput"],
@@ -408,6 +429,14 @@ def main() -> None:
         "avg_solver_time",
         "Average Solver Time per Slot (s)",
         "User Density vs Solver Time",
+    )
+    plot_density_metric(
+        figures_dir / "user_density_vs_energy.png",
+        densities,
+        density_rows,
+        "avg_total_energy",
+        "Average Total AP Energy",
+        "User Density vs AP Energy",
     )
     plot_density_metric(
         figures_dir / "user_density_vs_throughput.png",

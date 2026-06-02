@@ -31,6 +31,61 @@ The repository includes a comprehensive unit-testing suite to verify the logic o
 `test_control.py`: Confirms that the Quantized Consensus correctly increases "dual prices" under high resource pressure.
 `test_sim.py`: A lightweight end-to-end runner used for rapid logic verification.
 
+# Reference-Style Trend Plots
+
+Use `generate_reference_trend_plots.py` when the goal is to produce stable,
+paper-style trend figures rather than raw per-slot fluctuation plots.
+
+The script does not hard-code values. It improves trend visibility by using:
+
+- longer simulation horizons,
+- multi-seed averaging,
+- cumulative time-average delay and energy,
+- total AP energy rather than mislabeled per-task average energy,
+- a stable hyperparameter profile,
+- a sweep over the consensus learning rate.
+- a sweep over the SAGIN objective delay weight `alpha`.
+
+The stable profile uses:
+
+- `twin_smoothing = 0.80`
+- `sensor_filter_factor = 0.80`
+- `trust_update_factor = 0.20`
+- `consensus_step_size = 0.25`
+- `consensus_quantum = 0.05`
+- `consensus_epsilon = 0.03`
+- `anneal_reads = 20`
+- `anneal_sweeps = 80`
+
+These choices reduce slot-to-slot oscillation by slowing the DT/trust updates,
+using a smaller consensus learning rate, and making the classical QUBO backend
+more stable.
+
+Recommended command for final plots:
+
+```powershell
+python generate_reference_trend_plots.py --slots 500 --seeds 7,13,21,31,43 --focus-uavs 20 --densities 10,20,30,40,50 --consensus-steps 0.15,0.25,0.50,0.75 --delay-weights 0.5,1.0,2.0,4.0 --output-dir reference_trend_results
+```
+
+Faster validation command:
+
+```powershell
+python generate_reference_trend_plots.py --slots 100 --seeds 7,13,21 --focus-uavs 20 --densities 10,20,30,40,50 --consensus-steps 0.15,0.25,0.50,0.75 --delay-weights 0.5,1.0,2.0,4.0 --output-dir reference_trend_results_quick
+```
+
+Generated plots:
+
+- `fig_time_average_delay_energy.png`
+- `fig_consensus_step_convergence.png`
+- `fig_delay_weight_convergence.png`
+- `fig_density_delay_energy_tradeoff.png`
+
+Raw CSV values are saved beside the figures for traceability.
+Because the SAGIN cost model now includes uplink transmission energy and
+synchronization energy, the default energy plotting scale is `1.0`. Use
+`--energy-scale` only if you deliberately change the physical units.
+
+
 ## Phase 2 Quantum Integration
 
 1. Obtain an API token from D-Wave Leap.

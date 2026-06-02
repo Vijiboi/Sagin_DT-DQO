@@ -12,8 +12,10 @@ def build_slot_result(
     resource_feasible: bool,
 ) -> SlotResult:
     count = max(len(assignments), 1)
-    average_delay = sum(item.delay_cost for item in assignments) / count
-    average_energy = sum(item.energy_cost for item in assignments) / count
+    total_delay = sum(item.delay_cost for item in assignments)
+    total_energy = sum(item.energy_cost for item in assignments)
+    average_delay = total_delay / count
+    average_energy = total_energy / count
     mission_cost = sum(item.mission_cost for item in assignments)
     fidelity_cost = sum(item.fidelity_cost for item in assignments)
     sync_trigger_count = sum(summary.sync_triggered for summary in local_summaries)
@@ -33,6 +35,8 @@ def build_slot_result(
         local_summaries=local_summaries,
         average_delay=average_delay,
         average_energy=average_energy,
+        total_delay=total_delay,
+        total_energy=total_energy,
         mission_cost=mission_cost,
         fidelity_cost=fidelity_cost,
         sync_trigger_count=sync_trigger_count,

@@ -172,6 +172,8 @@ class SlotResult:
     local_summaries: list[LocalSummary]
     average_delay: float
     average_energy: float
+    total_delay: float
+    total_energy: float
     mission_cost: float
     fidelity_cost: float
     sync_trigger_count: int

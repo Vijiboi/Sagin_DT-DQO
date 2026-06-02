@@ -1,0 +1,113 @@
+{
+  "simulation_horizon": 500,
+  "sync_triggers": 3909,
+  "coord_triggers": 3867,
+  "one_hot_validity": true,
+  "avg_fidelity": 0.693,
+  "solver_statistics": {
+    "solved_problems": 2491,
+    "solver_counts": {
+      "neal_simulated_annealing": 1157,
+      "exact_enumeration": 1334
+    },
+    "total_solver_time": 10.929755,
+    "avg_solver_time": 0.004388
+  },
+  "simulation_parameters": {
+    "seed": 13,
+    "simulation_horizon_slots": 500,
+    "network_topology": {
+      "num_bs": 5,
+      "num_haps": 3,
+      "num_leos": 2,
+      "num_uavs": 50,
+      "candidate_ap_limit": 10,
+      "area_width": 1000.0,
+      "area_height": 1000.0,
+      "altitude_by_tier": {
+        "BS": 0.03,
+        "HAP": 20.0,
+        "LEO": 550.0
+      }
+    },
+    "task_generation": {
+      "task_arrival_probability": 0.8,
+      "randomize_task_weights": true,
+      "uav_altitude_min": 8.0,
+      "uav_altitude_max": 20.0,
+      "uav_max_altitude": 25.0,
+      "uav_velocity_xy_min": -3.0,
+      "uav_velocity_xy_max": 3.0,
+      "uav_velocity_z_min": -0.8,
+      "uav_velocity_z_max": 0.8,
+      "eta_u": 0.1
+    },
+    "tier_resources": {
+      "bandwidth_by_tier": {
+        "BS": 20.0,
+        "HAP": 100.0,
+        "LEO": 500.0
+      },
+      "communication_budget_by_tier": {
+        "BS": 24.0,
+        "HAP": 42.0,
+        "LEO": 60.0
+      },
+      "cpu_capacity_by_tier": {
+        "BS": 10.0,
+        "HAP": 20.0,
+        "LEO": 30.0
+      },
+      "power_budget_by_tier": {
+        "BS": 18.0,
+        "HAP": 28.0,
+        "LEO": 36.0
+      },
+      "uav_local_cpu_capacity": 1.0
+    },
+    "twin_and_trust": {
+      "sync_age_threshold": 3,
+      "sync_mismatch_threshold": 0.1,
+      "sync_uncertainty_threshold": 0.15,
+      "coord_trust_threshold": 0.1,
+      "coord_state_threshold": 0.2,
+      "twin_smoothing": 0.8,
+      "twin_gaussian_std": 0.04,
+      "sensor_filter_factor": 0.8,
+      "ap_trust_init_min": 0.7,
+      "ap_trust_init_max": 0.95
+    },
+    "objective_weights": {
+      "alpha_delay": 1.0,
+      "beta_energy": 0.5,
+      "gamma_mission": 1.0,
+      "omega_sync": 0.1,
+      "omega_fidelity": 0.2,
+      "nu_coord": 0.1
+    },
+    "closed_loop_overheads": {
+      "sync_delay_by_tier": {
+        "BS": 0.03,
+        "HAP": 0.08,
+        "LEO": 0.12
+      },
+      "coord_signal_delay_by_tier": {
+        "BS": 0.01,
+        "HAP": 0.03,
+        "LEO": 0.05
+      },
+      "sync_energy_by_tier": {
+        "BS": 0.02,
+        "HAP": 0.05,
+        "LEO": 0.08
+      }
+    },
+    "solver": {
+      "anneal_reads": 20,
+      "anneal_sweeps": 80,
+      "small_qubo_exact_threshold": 8,
+      "use_solver_guidance": true,
+      "local_solver_backend": "classical"
+    }
+  }
+}

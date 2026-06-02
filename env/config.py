@@ -38,6 +38,15 @@ class SimulationConfig:
     sync_cost_weight: float = 0.1
     fidelity_weight: float = 0.2
     coord_overhead_weight: float = 0.1 
+    sync_delay_by_tier: dict[str, float] = field(
+        default_factory=lambda: {"BS": 0.03, "HAP": 0.08, "LEO": 0.12}
+    )
+    coord_signal_delay_by_tier: dict[str, float] = field(
+        default_factory=lambda: {"BS": 0.01, "HAP": 0.03, "LEO": 0.05}
+    )
+    sync_energy_by_tier: dict[str, float] = field(
+        default_factory=lambda: {"BS": 0.02, "HAP": 0.05, "LEO": 0.08}
+    )
 
     # Trust Parameters [cite: 523, 561]
     trust_update_factor: float = 0.3
@@ -156,6 +165,11 @@ class SimulationConfig:
                 "omega_sync": self.sync_cost_weight,
                 "omega_fidelity": self.fidelity_weight,
                 "nu_coord": self.coord_overhead_weight,
+            },
+            "closed_loop_overheads": {
+                "sync_delay_by_tier": self.sync_delay_by_tier,
+                "coord_signal_delay_by_tier": self.coord_signal_delay_by_tier,
+                "sync_energy_by_tier": self.sync_energy_by_tier,
             },
             "solver": {
                 "anneal_reads": self.anneal_reads,

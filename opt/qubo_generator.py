@@ -76,8 +76,7 @@ class LocalQuboBuilder:
         return candidate_scores
 
     def _compute_local_load(self, ap: APNode, tasks: list[Task]) -> float:
-        queued_cpu = sum(t.cpu_demand for t in tasks)
-        return (ap.current_cpu_load + queued_cpu) / max(ap.cpu_capacity, 1.0)
+        return max(float(ap.current_task_load + len(tasks)), 1.0)
 
     def _calculate_mu(self, ap: APNode, task: Task, n_ref: float) -> tuple[float, float]:
         b_u = self._calculate_b_coefficient(ap, task, n_ref)
@@ -103,12 +102,21 @@ class LocalQuboBuilder:
     def _calculate_a_coefficient(self, ap: APNode, task: Task, n_ref: float, b_u: float) -> float:
         # Re-using local nominal cost calculation 
         rate = predicted_uplink_rate(task, ap, self.config, n_ref)
-        delay = (task.L_u / rate) + (task.L_u * task.D_u * n_ref) / max(ap.cpu_capacity, 1.0)
-        energy = self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity / max(n_ref, 1.0))**2
+        sync_active = ap.twin_state.age == 1
+        delay = (
+            (task.L_u / rate)
+            + (task.L_u * task.D_u * n_ref) / max(ap.cpu_capacity, 1.0)
+            + self._sync_delay(ap, sync_active)
+        )
+        energy = (
+            self.config.uav_transmit_power * (task.L_u / rate)
+            + self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity / max(n_ref, 1.0))**2
+            + self._sync_energy(ap, sync_active)
+        )
         freshness = 1.0 - np.exp(-self.config.eta_u * task.AoI)
         risk = task.psi_u * (1.0 - ap.trust) * freshness
         fidelity = 1.0 - ap.twin_state.fidelity
-        sync = 1.0 if ap.twin_state.age == 1 else 0.0
+        sync = 1.0 if sync_active else 0.0
         gamma_n = self.config.delay_weight * delay + self.config.energy_weight * energy
         gamma_n += (
             self.config.mission_weight * risk
@@ -121,21 +129,22 @@ class LocalQuboBuilder:
         """
         Calculates individual physical costs with high precision for analytics [cite: 336-342].
         """
-        # 1. Physical Cost Components [cite: 340-342]
-        # Delay calculation
+        # 1. Physical cost components from the closed-loop DTN cost model.
         rate = predicted_uplink_rate(task, ap, self.config, n_ref)
-        raw_delay = (task.L_u / rate) + (task.L_u * task.D_u * n_ref) / max(ap.cpu_capacity, 1.0)
+        sync_active = ap.twin_state.age == 1
+        raw_delay = (
+            (task.L_u / rate)
+            + (task.L_u * task.D_u * n_ref) / max(ap.cpu_capacity, 1.0)
+            + self._sync_delay(ap, sync_active)
+        )
         delay_cost = self.config.delay_weight * raw_delay
         
-        # Energy calculation: Ensure kappa_m is non-zero in config.py
-        # Energy = kappa * L * D * f^2 
-        # Here we use the normalized frequency/capacity squared
-        f_m = ap.cpu_capacity 
-        raw_energy = self.config.kappa_m * task.L_u * task.D_u * (f_m**2)
-        
-        # If the value is too small for standard floats, we can apply a 
-        # scaling factor for visualization purposes, but for strict 
-        # paper adherence, we keep the raw value:
+        f_share = ap.cpu_capacity / max(n_ref, 1.0)
+        raw_energy = (
+            self.config.uav_transmit_power * (task.L_u / rate)
+            + self.config.kappa_m * task.L_u * task.D_u * (f_share**2)
+            + self._sync_energy(ap, sync_active)
+        )
         energy_cost = self.config.energy_weight * raw_energy
 
         # 2. Twin-based Risk/Freshness Components [cite: 109, 223-227]
@@ -166,3 +175,13 @@ class LocalQuboBuilder:
             required_cpu=task.cpu_demand,
             required_power=task.power_demand
         )
+
+    def _sync_delay(self, ap: APNode, active: bool) -> float:
+        if not active:
+            return 0.0
+        return float(self.config.sync_delay_by_tier.get(ap.tier, 0.0))
+
+    def _sync_energy(self, ap: APNode, active: bool) -> float:
+        if not active:
+            return 0.0
+        return float(self.config.sync_energy_by_tier.get(ap.tier, 0.0))

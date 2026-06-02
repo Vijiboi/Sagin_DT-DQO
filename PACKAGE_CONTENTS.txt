@@ -1,0 +1,13 @@
+﻿SAGIN DT-DQO final package
+
+Contents:
+- Updated SAGIN Quantum-aligned source code: control, env, opt, sim, twin, results modules
+- Final trend results: final_trend_results/trend_20260601_224146
+- Generated figures: PNG plots under final_trend_results/.../figures
+- Raw run data and CSV summaries: raw_runs, time_average_convergence.csv, density_tradeoff_summary.csv, consensus_step_summary.csv, delay_weight_summary.csv
+- Previous comparison/result folders retained for traceability
+- Test scripts and run scripts
+- README and TREND_PLOTS_README with generation commands
+
+Main final plot command:
+python generate_reference_trend_plots.py --slots 500 --seeds 7,13,21,31,43 --focus-uavs 20 --densities 10,20,30,40,50 --consensus-steps 0.15,0.25,0.50,0.75 --delay-weights 0.5,1.0,2.0,4.0 --output-dir final_trend_results
