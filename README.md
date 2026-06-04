@@ -49,8 +49,7 @@ generate computational tasks characterized by:
 
 $$
 PL_{u,m}^{FS}(t)
-================
-
+=
 32.45
 +
 20\log_{10}(f_c)
@@ -66,9 +65,8 @@ where:
 ### Achievable Uplink Capacity
 
 $$
-R_{u,m}(t)
-==========
-
+R_{u,m}(t) 
+=
 b_{u,m}(t)
 \log_2
 \left(
@@ -110,7 +108,7 @@ using EWMA tracking.
 
 $$
 \hat{l}_m(t+1)
-==============
+=
 
 \beta_l l_m^{obs}(t)
 +
@@ -121,7 +119,7 @@ $$
 
 $$
 \epsilon_m^{tw}(t)
-==================
+=
 
 \left|
 s_m(t)-\hat{s}_m(t)
@@ -132,7 +130,7 @@ $$
 
 $$
 F_m(t)
-======
+=
 
 \exp
 \left(
@@ -167,7 +165,7 @@ are exceeded.
 
 $$
 \lambda_m^{(k+1)}
-=================
+=
 
 \max
 \left(
@@ -217,7 +215,7 @@ which simplifies to:
 
 $$
 \Gamma_{u,m}(N)
-===============
+=
 
 A_{u,m}^{(k)}
 +
@@ -228,7 +226,7 @@ with
 
 $$
 N_m(t)
-======
+=
 
 \sum_{v\in\mathcal{U}}
 b_{v,m}(t)
@@ -238,7 +236,7 @@ $$
 
 $$
 [Q_m^{(k)}]_{u,v}
-=================
+=
 
 \frac{1}{2}
 \left(
