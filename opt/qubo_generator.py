@@ -93,14 +93,12 @@ class LocalQuboBuilder:
             - (nu * ap.coordination_state.quantized_dual * rho_m * task.psi_u)
         )
         return mu_u, b_u
-
-    def _calculate_b_coefficient(self, ap: APNode, task: Task, n_ref: float) -> float:
+    #linearized terms for the surrogate modelcderived from the gradient of the original cost function with respect to the decision variable, evaluated at the reference point n_ref.
         delay_grad = (task.L_u * task.D_u) / max(ap.cpu_capacity, 1.0) 
         energy_grad = -2.0 * self.config.kappa_m * task.L_u * task.D_u * (ap.cpu_capacity**2) / (n_ref**3 if n_ref > 0 else 1.0) 
         return self.config.delay_weight * delay_grad + self.config.energy_weight * energy_grad
 
     def _calculate_a_coefficient(self, ap: APNode, task: Task, n_ref: float, b_u: float) -> float:
-        # Re-using local nominal cost calculation 
         rate = predicted_uplink_rate(task, ap, self.config, n_ref)
         sync_active = ap.twin_state.age == 1
         delay = (
