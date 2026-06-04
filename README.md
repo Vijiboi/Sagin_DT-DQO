@@ -47,15 +47,7 @@ generate computational tasks characterized by:
 
 ### Free Space Path Loss
 
-$$
-PL_{u,m}^{FS}(t)
-=
-32.45
-+
-20\log_{10}(f_c)
-+
-20\log_{10}(d_{u,m}(t))
-$$
+$$ PL_{u,m}^{FS}(t) = 32.45 + 20 \log_{10}(f_c) + 20 \log_{10}(d_{u,m}(t)) $$
 
 where:
 
@@ -64,17 +56,7 @@ where:
 
 ### Achievable Uplink Capacity
 
-$$
-R_{u,m}(t) 
-=
-b_{u,m}(t)
-\log_2
-\left(
-1+
-\frac{P_u g_{u,m}(t)}
-{N_0 b_{u,m}(t)}
-\right)
-$$
+$$ R_{u,m}(t) = b_{u,m}(t)\log_2\left(1+\frac{P_u g_{u,m}(t)}{N_0 b_{u,m}(t)}\right) $$
 
 with
 
@@ -106,40 +88,15 @@ using EWMA tracking.
 
 ### State Update
 
-$$
-\hat{l}_m(t+1)
-=
-
-\beta_l l_m^{obs}(t)
-+
-(1-\beta_l)\hat{l}_m(t)
-$$
+$$ \hat{l}_m(t+1) = \beta_l l_m^{obs}(t) + (1-\beta_l)\hat{l}_m(t) $$
 
 ### Twin Mismatch
 
-$$
-\epsilon_m^{tw}(t)
-=
-
-\left|
-s_m(t)-\hat{s}_m(t)
-\right|_2
-$$
+$$ \epsilon_m^{tw}(t) = \left| s_m(t)-\hat{s}_m(t) \right|_2 $$
 
 ### Twin Fidelity
 
-$$
-F_m(t)
-=
-
-\exp
-\left(
--\kappa_{\epsilon}\overline{\epsilon}_m^{tw}(t)
------------------------------------------------
-
-\kappa_A A_m^{tw}(t)
-\right)
-$$
+$$ F_m(t) = \exp \left( -\kappa_{\epsilon}\overline{\epsilon}_m^{tw}( \kappa_A A_m^{tw}(t) \right) $$
 
 Mission-critical tasks require
 
@@ -163,18 +120,7 @@ are exceeded.
 
 ### Dual Price Update
 
-$$
-\lambda_m^{(k+1)}
-=
-
-\max
-\left(
-0,
-\lambda_m^{(k)}
-+
-\eta_k \Delta_m
-\right)
-$$
+$$ \lambda_m^{(k+1)} = \max \left( 0, \lambda_m^{(k)} + \eta_k \Delta_m \right) $$
 
 where:
 
@@ -213,42 +159,15 @@ $$
 
 which simplifies to:
 
-$$
-\Gamma_{u,m}(N)
-=
-
-A_{u,m}^{(k)}
-+
-B_{u,m}^{(k)}N_m(t)
-$$
+$$ \Gamma_{u,m}(N) = A_{u,m}^{(k)} + B_{u,m}^{(k)}N_m(t) $$
 
 with
 
-$$
-N_m(t)
-=
-
-\sum_{v\in\mathcal{U}}
-b_{v,m}(t)
-$$
+$$ N_m(t) = \sum_{v\in\mathcal{U}} b_{v,m}(t) $$
 
 ### QUBO Coupling Matrix
 
-$$
-[Q_m^{(k)}]_{u,v}
-=
-
-\frac{1}{2}
-\left(
-B_{u,m}^{(k)}
-+
-B_{v,m}^{(k)}
-\right)
-+
-\nu
-+
-\nu \rho_m^2(t)\psi_u\psi_v
-$$
+$$ [Q_m^{(k)}]_{u,v} = \frac{1}{2} \left( B_{u,m}^{(k)} + B_{v,m}^{(k)} \right) + \nu + \nu \rho_m^2(t)\psi_u\psi_v $$
 
 ---
 
