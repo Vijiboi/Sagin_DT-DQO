@@ -1,0 +1,218 @@
+{
+  "slots": 30,
+  "seeds": "7,13,21,31,43",
+  "anneal_reads": 2,
+  "anneal_sweeps": 5,
+  "tasks": "20,40,60,80,100",
+  "aoi_values": "1,3,5,7,9,11",
+  "speeds": "5,10,15,20,25,30",
+  "sync_thresholds": "1,2,3,4,5,6",
+  "tradeoff_thresholds": "1,2,3,4,5,6,7,8",
+  "coord_thresholds": "0.05,0.10,0.15,0.20,0.25",
+  "output_dir": "paper_results_final_20260616",
+  "dpi": 350,
+  "methods": {
+    "proposed": {
+      "symbol": "$\\mathcal{P}_{\\mathrm{DTN-HQ}}$",
+      "description": "Proposed closed-loop DTN + Local Classical QUBO guidance",
+      "color": "#0072B2",
+      "marker": "o",
+      "linestyle": "-",
+      "algorithm": "proposed",
+      "decision_profile": "full",
+      "projection": "hierarchical",
+      "solver_backend": "classical",
+      "use_solver_guidance": true,
+      "sync_policy": "event",
+      "coord_policy": "event"
+    },
+    "greedy": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{GLQ}}$",
+      "description": "Greedy Link-Quality",
+      "color": "#D55E00",
+      "marker": "s",
+      "linestyle": "--",
+      "algorithm": "greedy",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "centralized_qubo": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{CQ}}$",
+      "description": "Centralized QUBO",
+      "color": "#009E73",
+      "marker": "^",
+      "linestyle": "-.",
+      "algorithm": "centralized_qubo",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "channel_only": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{CH}}$",
+      "description": "Channel-Only Predictive",
+      "color": "#E69F00",
+      "marker": "v",
+      "linestyle": "-.",
+      "algorithm": "channel_only",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "dt_free": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{DTF}}$",
+      "description": "DT-Free Distributed",
+      "color": "#CC79A7",
+      "marker": "D",
+      "linestyle": ":",
+      "algorithm": "dt_free",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "static_risk": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{SR}}$",
+      "description": "Static-Risk Distributed",
+      "color": "#56B4E9",
+      "marker": "P",
+      "linestyle": [
+        0,
+        [
+          4,
+          1
+        ]
+      ],
+      "algorithm": "static_risk",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "aoi_unaware": {
+      "symbol": "$\\mathcal{B}_{A^-}$",
+      "description": "AoI-Unaware Distributed",
+      "color": "#009E73",
+      "marker": "^",
+      "linestyle": [
+        0,
+        [
+          5,
+          2
+        ]
+      ],
+      "algorithm": "aoi_unaware",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "event",
+      "coord_policy": "never"
+    },
+    "trust_unaware": {
+      "symbol": "$\\mathcal{B}_{\\tau^-}$",
+      "description": "Trust-Unaware Distributed",
+      "color": "#9467BD",
+      "marker": "<",
+      "linestyle": [
+        0,
+        [
+          3,
+          1,
+          1,
+          1
+        ]
+      ],
+      "algorithm": "trust_unaware",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "always_on": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{AO}}$",
+      "description": "Always-On Sync/Coordination",
+      "color": "#000000",
+      "marker": "*",
+      "linestyle": "-",
+      "algorithm": "always_on",
+      "decision_profile": "full",
+      "projection": "hierarchical",
+      "solver_backend": "classical",
+      "use_solver_guidance": true,
+      "sync_policy": "always",
+      "coord_policy": "always"
+    },
+    "local_qubo": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{LQ}}$",
+      "description": "Classical Same-Objective Local QUBO/BQM",
+      "color": "#9467BD",
+      "marker": "<",
+      "linestyle": [
+        0,
+        [
+          3,
+          1,
+          1,
+          1
+        ]
+      ],
+      "algorithm": "local_qubo",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "local_search": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{LS}}$",
+      "description": "Classical Same-Objective Local Search",
+      "color": "#7F7F7F",
+      "marker": ">",
+      "linestyle": "--",
+      "algorithm": "local_search",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "uncertainty_unaware": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{UUT}}$",
+      "description": "Uncertainty-Unaware Periodic Trigger",
+      "color": "#17BECF",
+      "marker": "d",
+      "linestyle": [
+        0,
+        [
+          5,
+          1
+        ]
+      ],
+      "algorithm": "uncertainty_unaware",
+      "decision_profile": "full",
+      "projection": "hierarchical",
+      "solver_backend": "classical",
+      "use_solver_guidance": true,
+      "sync_policy": "periodic",
+      "coord_policy": "periodic"
+    }
+  }
+}

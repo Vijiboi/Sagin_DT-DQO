@@ -1,0 +1,14 @@
+Measured baseline symbol key
+
+$\mathcal{P}_{\mathrm{DTN-HQ}}$ = Proposed closed-loop DTN + Local Classical QUBO guidance
+$\mathcal{B}_{\mathrm{GLQ}}$ = Greedy Link-Quality
+$\mathcal{B}_{\mathrm{CQ}}$ = Centralized QUBO
+$\mathcal{B}_{\mathrm{CH}}$ = Channel-Only Predictive
+$\mathcal{B}_{\mathrm{DTF}}$ = DT-Free Distributed
+$\mathcal{B}_{\mathrm{SR}}$ = Static-Risk Distributed
+$\mathcal{B}_{A^-}$ = AoI-Unaware Distributed
+$\mathcal{B}_{\tau^-}$ = Trust-Unaware Distributed
+$\mathcal{B}_{\mathrm{AO}}$ = Always-On Sync/Coordination
+$\mathcal{B}_{\mathrm{LQ}}$ = Classical Same-Objective Local QUBO/BQM
+$\mathcal{B}_{\mathrm{LS}}$ = Classical Same-Objective Local Search
+$\mathcal{B}_{\mathrm{UUT}}$ = Uncertainty-Unaware Periodic Trigger

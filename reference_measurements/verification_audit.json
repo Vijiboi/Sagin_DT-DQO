@@ -1,0 +1,82 @@
+{
+  "study_dir": "C:\\Users\\Mrinal Thakur\\Downloads\\Sagin_DT-DQO-main\\Sagin_DT-DQO-main\\paper_results_final_20260616\\measured_20260616_064606",
+  "row_counts": {
+    "uav_task_sweep_raw.csv": 275,
+    "aoi_sweep_raw.csv": 180,
+    "mobility_sweep_raw.csv": 180,
+    "sync_threshold_sweep_raw.csv": 90,
+    "coord_threshold_sweep_raw.csv": 75,
+    "tradeoff_sweep_raw.csv": 120
+  },
+  "expected_row_counts": {
+    "uav_task_sweep_raw.csv": 275,
+    "aoi_sweep_raw.csv": 180,
+    "mobility_sweep_raw.csv": 180,
+    "sync_threshold_sweep_raw.csv": 90,
+    "coord_threshold_sweep_raw.csv": 75,
+    "tradeoff_sweep_raw.csv": 120
+  },
+  "all_row_counts_match": true,
+  "trend_checks": {
+    "proposed_sync_overhead_vs_delta_A": {
+      "1.0": 10.0,
+      "2.0": 5.0,
+      "3.0": 3.0,
+      "4.0": 2.5,
+      "5.0": 2.0,
+      "6.0": 1.5
+    },
+    "proposed_coord_overhead_vs_delta_tau": {
+      "0.05": 10.0,
+      "0.1": 9.790000000000001,
+      "0.15": 8.620000000000001,
+      "0.2": 6.39,
+      "0.25": 4.390000000000001
+    },
+    "proposed_fidelity_vs_speed": {
+      "5.0": 0.6843886424986372,
+      "10.0": 0.6707244717796947,
+      "15.0": 0.6479983349195868,
+      "20.0": 0.6275220275775292,
+      "25.0": 0.6089199301082305,
+      "30.0": 0.5913545139702133
+    },
+    "proposed_freshness_risk_vs_aoi": {
+      "1.0": 0.01633443896779624,
+      "3.0": 0.046303671325750466,
+      "5.0": 0.06358202025888765,
+      "7.0": 0.07865330047442813,
+      "9.0": 0.09414039517445219,
+      "11.0": 0.10492847100309931
+    },
+    "aoi_unaware_freshness_risk_vs_aoi": {
+      "1.0": 0.020742989990141035,
+      "3.0": 0.05367916734993603,
+      "5.0": 0.07490670969684955,
+      "7.0": 0.08787024133221245,
+      "9.0": 0.10372445448541862,
+      "11.0": 0.11184048738281607
+    },
+    "runtime_ms_vs_U_proposed": {
+      "20.0": 42.021615999983624,
+      "40.0": 87.7376409999124,
+      "60.0": 158.84482999965257,
+      "80.0": 220.8000240002002,
+      "100.0": 320.6856470002094
+    },
+    "runtime_ms_vs_U_centralized_qubo": {
+      "20.0": 80.1630750001641,
+      "40.0": 74.87151900022582,
+      "60.0": 151.45155900034297,
+      "80.0": 234.2003229996044,
+      "100.0": 351.9807429996581
+    }
+  },
+  "validation": {
+    "unit_tests": "python -m unittest discover -v -> 9 tests OK",
+    "slot_feasibility": "all slot_metrics one_hot_valid=1 and resource_feasible=1",
+    "plot_shading": "generate_measured_baseline_plots.py contains no fill_between/shading call",
+    "png_count": 9,
+    "paste_ready_png_count": 9
+  }
+}

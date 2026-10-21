@@ -1,0 +1,462 @@
+{
+  "slots": 30,
+  "seeds": [
+    7,
+    13,
+    21,
+    31,
+    43
+  ],
+  "anneal_reads": 2,
+  "anneal_sweeps": 5,
+  "max_qubo_iterations": 10,
+  "dpi": 350,
+  "output_dir": "iterative_results_algorithm1",
+  "base_parameters": {
+    "seed": 7,
+    "slots": 30,
+    "area_width": 1000.0,
+    "area_height": 1000.0,
+    "candidate_ap_limit": 10,
+    "num_bs": 5,
+    "num_haps": 3,
+    "num_leos": 2,
+    "num_uavs": 20,
+    "task_arrival_probability": 0.8,
+    "slot_duration_seconds": 1.0,
+    "mbits_to_bits": 1000000.0,
+    "mbps_to_bits_per_second": 1000000.0,
+    "ghz_to_hz": 1000000000.0,
+    "sync_age_threshold": 3,
+    "sync_uncertainty_threshold": 0.15,
+    "sync_mismatch_threshold": 0.1,
+    "coord_trust_threshold": 0.1,
+    "coord_state_threshold": 0.2,
+    "coord_uncertainty_threshold": 0.15,
+    "coord_mismatch_threshold": 0.1,
+    "coord_app_pressure_threshold": 0.1,
+    "delay_weight": 1.0,
+    "energy_weight": 0.5,
+    "mission_weight": 1.0,
+    "sync_cost_weight": 0.1,
+    "fidelity_weight": 0.2,
+    "coord_overhead_weight": 0.1,
+    "sync_delay_by_tier": {
+      "BS": 0.03,
+      "HAP": 0.08,
+      "LEO": 0.12
+    },
+    "coord_signal_delay_by_tier": {
+      "BS": 0.01,
+      "HAP": 0.03,
+      "LEO": 0.05
+    },
+    "sync_energy_by_tier": {
+      "BS": 0.02,
+      "HAP": 0.05,
+      "LEO": 0.08
+    },
+    "trust_update_factor": 0.3,
+    "trust_weights": [
+      0.5,
+      0.3,
+      0.2
+    ],
+    "eta_u": 0.1,
+    "twin_smoothing": 0.65,
+    "qubo_penalty": 200.0,
+    "coordination_multiplier_step": 0.25,
+    "max_qubo_iterations": 10,
+    "qubo_load_coupling": 1.0,
+    "qubo_guidance_penalty": 0.25,
+    "fidelity_violation_penalty": 200.0,
+    "resource_constraint_scale": 1000,
+    "cqm_to_bqm_variable_limit": 160,
+    "consensus_step_size": 0.75,
+    "consensus_quantum": 0.1,
+    "consensus_epsilon": 0.08,
+    "twin_gaussian_std": 0.04,
+    "sensor_filter_factor": 0.65,
+    "task_aoi_min": 1,
+    "task_aoi_max": 5,
+    "uav_transmit_power": 1.0,
+    "noise_spectral_density": 1e-09,
+    "anneal_reads": 2,
+    "anneal_sweeps": 5,
+    "small_qubo_exact_threshold": 8,
+    "use_solver_guidance": true,
+    "output_dir": "results",
+    "randomize_task_weights": true,
+    "ap_trust_init_min": 0.7,
+    "ap_trust_init_max": 0.95,
+    "local_execution_trust": 0.75,
+    "ap_initial_predicted_bandwidth": 0.75,
+    "kappa_m": 1e-28,
+    "kappa_local": 1e-28,
+    "uav_local_cpu_capacity": 1.0,
+    "local_solver_backend": "classical",
+    "algorithm": "proposed",
+    "decision_profile": "full",
+    "sync_trigger_policy": "event",
+    "coord_trigger_policy": "event",
+    "sync_fidelity_trigger": true,
+    "periodic_sync_period": 3,
+    "periodic_coord_period": 3,
+    "trust_reward_weight": 1.0,
+    "local_search_iterations": 100,
+    "normalize_objective": true,
+    "delay_reference_s": 1.0,
+    "energy_reference_j": 10.0,
+    "risk_reference": 1.0,
+    "freshness_risk_reference": 1.0,
+    "trust_reference": 1.0,
+    "warmup_slots": 10,
+    "uav_altitude_min": 8.0,
+    "uav_altitude_max": 20.0,
+    "uav_max_altitude": 25.0,
+    "uav_velocity_xy_min": -3.0,
+    "uav_velocity_xy_max": 3.0,
+    "uav_velocity_z_min": -0.8,
+    "uav_velocity_z_max": 0.8,
+    "observation_ratio_clip": 1.5,
+    "cpu_capacity_by_tier": {
+      "BS": 10.0,
+      "HAP": 20.0,
+      "LEO": 30.0
+    },
+    "bandwidth_by_tier": {
+      "BS": 20.0,
+      "HAP": 100.0,
+      "LEO": 500.0
+    },
+    "communication_budget_by_tier": {
+      "BS": 24.0,
+      "HAP": 42.0,
+      "LEO": 60.0
+    },
+    "power_budget_by_tier": {
+      "BS": 18.0,
+      "HAP": 28.0,
+      "LEO": 36.0
+    },
+    "altitude_by_tier": {
+      "BS": 0.03,
+      "HAP": 20.0,
+      "LEO": 550.0
+    },
+    "carrier_frequency_ghz_by_tier": {
+      "BS": 2.0,
+      "HAP": 30.0,
+      "LEO": 20.0
+    }
+  },
+  "sweeps": {
+    "uav_task_sweep": [
+      20,
+      40,
+      60,
+      80,
+      100
+    ],
+    "aoi_sweep": [
+      1,
+      3,
+      5,
+      7,
+      9,
+      11
+    ],
+    "mobility_sweep": [
+      5.0,
+      10.0,
+      15.0,
+      20.0,
+      25.0,
+      30.0
+    ],
+    "sync_threshold_sweep": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "coord_threshold_sweep": [
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ],
+    "tradeoff_sweep": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  "sweep_parameter": {
+    "uav_task_sweep": "num_uavs",
+    "aoi_sweep": "task_aoi_min=task_aoi_max",
+    "mobility_sweep": "uav_velocity_xy_min=-x; uav_velocity_xy_max=x",
+    "sync_threshold_sweep": "sync_age_threshold",
+    "coord_threshold_sweep": "coord_trust_threshold",
+    "tradeoff_sweep": "sync_age_threshold"
+  },
+  "sweep_methods": {
+    "uav_task_sweep": [
+      "proposed",
+      "greedy",
+      "centralized_qubo",
+      "channel_only",
+      "dt_free",
+      "static_risk",
+      "aoi_unaware",
+      "trust_unaware",
+      "always_on",
+      "local_qubo",
+      "local_search",
+      "uncertainty_unaware"
+    ],
+    "aoi_sweep": [
+      "proposed",
+      "aoi_unaware",
+      "trust_unaware",
+      "static_risk",
+      "channel_only",
+      "uncertainty_unaware"
+    ],
+    "mobility_sweep": [
+      "proposed",
+      "channel_only",
+      "static_risk",
+      "aoi_unaware",
+      "uncertainty_unaware",
+      "dt_free"
+    ],
+    "sync_threshold_sweep": [
+      "proposed",
+      "always_on",
+      "uncertainty_unaware"
+    ],
+    "coord_threshold_sweep": [
+      "proposed",
+      "always_on",
+      "uncertainty_unaware"
+    ],
+    "tradeoff_sweep": [
+      "proposed",
+      "always_on",
+      "uncertainty_unaware"
+    ]
+  },
+  "methods": {
+    "proposed": {
+      "symbol": "$\\mathcal{P}_{\\mathrm{DTN-HQ}}$",
+      "description": "Proposed closed-loop DTN + iterative local QUBO assignment",
+      "color": "#0072B2",
+      "marker": "o",
+      "linestyle": "-",
+      "algorithm": "proposed",
+      "decision_profile": "full",
+      "projection": "hierarchical",
+      "solver_backend": "classical",
+      "use_solver_guidance": true,
+      "sync_policy": "event",
+      "coord_policy": "event"
+    },
+    "greedy": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{GLQ}}$",
+      "description": "Greedy Link-Quality",
+      "color": "#D55E00",
+      "marker": "s",
+      "linestyle": "--",
+      "algorithm": "greedy",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "centralized_qubo": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{CQ}}$",
+      "description": "Centralized QUBO",
+      "color": "#009E73",
+      "marker": "^",
+      "linestyle": "-.",
+      "algorithm": "centralized_qubo",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "channel_only": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{CH}}$",
+      "description": "Channel-Only Predictive",
+      "color": "#E69F00",
+      "marker": "v",
+      "linestyle": "-.",
+      "algorithm": "channel_only",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "dt_free": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{DTF}}$",
+      "description": "DT-Free Distributed",
+      "color": "#CC79A7",
+      "marker": "D",
+      "linestyle": ":",
+      "algorithm": "dt_free",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "static_risk": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{SR}}$",
+      "description": "Static-Risk Distributed",
+      "color": "#56B4E9",
+      "marker": "P",
+      "linestyle": [
+        0,
+        [
+          4,
+          1
+        ]
+      ],
+      "algorithm": "static_risk",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "aoi_unaware": {
+      "symbol": "$\\mathcal{B}_{A^-}$",
+      "description": "AoI-Unaware Distributed",
+      "color": "#009E73",
+      "marker": "^",
+      "linestyle": [
+        0,
+        [
+          5,
+          2
+        ]
+      ],
+      "algorithm": "aoi_unaware",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "event",
+      "coord_policy": "never"
+    },
+    "trust_unaware": {
+      "symbol": "$\\mathcal{B}_{\\tau^-}$",
+      "description": "Trust-Unaware Distributed",
+      "color": "#9467BD",
+      "marker": "<",
+      "linestyle": [
+        0,
+        [
+          3,
+          1,
+          1,
+          1
+        ]
+      ],
+      "algorithm": "trust_unaware",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "always_on": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{AO}}$",
+      "description": "Always-On Sync/Coordination",
+      "color": "#000000",
+      "marker": "*",
+      "linestyle": "-",
+      "algorithm": "always_on",
+      "decision_profile": "full",
+      "projection": "hierarchical",
+      "solver_backend": "classical",
+      "use_solver_guidance": true,
+      "sync_policy": "always",
+      "coord_policy": "always"
+    },
+    "local_qubo": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{LQ}}$",
+      "description": "Classical Same-Objective Local QUBO/BQM",
+      "color": "#9467BD",
+      "marker": "<",
+      "linestyle": [
+        0,
+        [
+          3,
+          1,
+          1,
+          1
+        ]
+      ],
+      "algorithm": "local_qubo",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "local_search": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{LS}}$",
+      "description": "Classical Same-Objective Local Search",
+      "color": "#7F7F7F",
+      "marker": ">",
+      "linestyle": "--",
+      "algorithm": "local_search",
+      "decision_profile": "full",
+      "projection": "baseline",
+      "solver_backend": "none",
+      "use_solver_guidance": false,
+      "sync_policy": "never",
+      "coord_policy": "never"
+    },
+    "uncertainty_unaware": {
+      "symbol": "$\\mathcal{B}_{\\mathrm{UUT}}$",
+      "description": "Uncertainty-Unaware Periodic Trigger",
+      "color": "#17BECF",
+      "marker": "d",
+      "linestyle": [
+        0,
+        [
+          5,
+          1
+        ]
+      ],
+      "algorithm": "uncertainty_unaware",
+      "decision_profile": "full",
+      "projection": "hierarchical",
+      "solver_backend": "classical",
+      "use_solver_guidance": true,
+      "sync_policy": "periodic",
+      "coord_policy": "periodic"
+    }
+  }
+}
