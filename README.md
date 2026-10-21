@@ -219,7 +219,6 @@ $$ [Q_m^{(k)}]_{u,v} = \frac{1}{2} \left( B_{u,m}^{(k)} + B_{v,m}^{(k)} \right) 
 
 Note:- The files under LocalTESTS are for testing each aspect of model (like sim, env, twin etc.) seperately
 ```
----
 
 ---
 
