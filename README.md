@@ -218,6 +218,8 @@ $$ [Q_m^{(k)}]_{u,v} = \frac{1}{2} \left( B_{u,m}^{(k)} + B_{v,m}^{(k)} \right) 
 └── Local_TESTS 
 
 Note:- The files under LocalTESTS are for testing each aspect of model (like sim, env, twin etc.) seperately
+```
+---
 
 ---
 
@@ -244,7 +246,7 @@ Note:- The files under LocalTESTS are for testing each aspect of model (like sim
 
 ---
 
-## 4. Set up
+# 4. Set up
 
 Open the folder containing this README in VS Code, then open a PowerShell terminal in that folder. Python 3.10 or newer is recommended.
 
@@ -257,7 +259,7 @@ python -m pip install -r requirements.txt
 
 If PowerShell blocks activation, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` in that terminal, then activate again.
 
-## 5. Run one simulation
+# 5. Run one simulation
 
 ```powershell
 python -m sim.main --slots 30 --seed 7 --reads 2 --sweeps 5 --max-qubo-iterations 10 --output-dir results\seed_7
@@ -267,7 +269,7 @@ The single-run CLI also accepts `--solver-backend classical|exact|annealing|dimo
 
 Each run writes a timestamped directory containing `summary.json`, `simulation_parameters.json`, per-slot metrics, assignments, and digital-twin metrics. Do not reuse an output directory when you want an unambiguous experiment record.
 
-## 6. Reproduce the full sweep study
+# 6. Reproduce the full sweep study
 
 From the project root, run:
 
@@ -316,7 +318,7 @@ The experiment creates one row per method, x-value, and seed: 945 rows with the 
 
 The sweep is computationally intensive: each run includes 30 slots, and every proposed/iterative method performs one local QUBO solve per active infrastructure node and inner iteration. Keep the terminal open until the script reports that measurements and figures are complete. Use a new `--output-dir` for each full rerun so run artifacts and CSVs do not mix.
 
-## 7. Faster iteration
+# 7. Faster iteration
 
 For a fast implementation pass, use fewer slots, one seed, and a small subset of x-values. For example:
 
@@ -326,7 +328,7 @@ python generate_measured_baseline_plots.py --rerun-simulations --slots 12 --seed
 
 This is for checking that the workflow runs; it is not the full five-seed study.
 
-## 8. Replot saved measurements without simulation
+# 8. Replot saved measurements without simulation
 
 ```powershell
 python generate_measured_baseline_plots.py --replot-from iterative_results_algorithm1 --output-dir replotted_figures
@@ -334,7 +336,7 @@ python generate_measured_baseline_plots.py --replot-from iterative_results_algor
 
 This reads the six `*_raw.csv` files and produces figures. It does not launch any simulator runs. Plot rendering applies Savitzky-Golay smoothing to the displayed line where enough x-points exist; the raw CSV values are not smoothed or modified.
 
-## 9. How the proposed controller follows Algorithm 
+# 9. How the proposed controller follows Algorithm 
 
 At the start of each slot, the simulator updates mobility, generates tasks, updates each twin, and evaluates synchronization and coordination triggers. A triggered node reports its latest realized coordination summary; the coordinator retains each report and freezes its reference vector for the current slot.
 
@@ -342,7 +344,7 @@ For every infrastructure node, the controller initializes a positive reference l
 
 The regional controller applies the task-wise minimum in Eqs. 42-44 over infrastructure candidates that pass the task's fidelity requirement, with local execution available as the fallback. It recomputes destination loads, evaluates the executed assignments, and stores their realized coordination summaries for future trigger-based reports. Regional selection uses the final local reference-load service scores; outcome metrics are recomputed from the selected mapping after execution.
 
-## 10. Important reproducibility notes
+# 10. Important reproducibility notes
 
 - Seeds are set per run and recorded in each run's `simulation_parameters.json`; the sweep seed list is also saved in `study_config.json`.
 - Re-running with the same code, Python/dependency versions, parameters, and seed reproduces the generated environment and stochastic inputs. Annealing backends and library/platform versions can still affect solver samples.
